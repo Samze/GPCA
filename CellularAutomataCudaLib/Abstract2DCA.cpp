@@ -25,4 +25,10 @@ void Abstract2DCA::setStates(int states) {
 			states = states >> 1; 
 			++noBits;
 		}
+
+		maxBits = 1;
+
+		for (int i = 1; i < noBits; i++) {
+			maxBits = (maxBits << 1) + 1;
+		}
 }

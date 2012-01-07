@@ -13,7 +13,7 @@ class CellularAutomata
 
 public:
 	DLLExport CellularAutomata(int,int); //random data
-	DLLExport CellularAutomata(int*, int);
+	DLLExport CellularAutomata(unsigned int*, int);
 	DLLExport ~CellularAutomata();
 	//DLLExport virtual float nextTimeStep() = 0;
 	
@@ -21,11 +21,11 @@ public:
 	DLLExport virtual float nextTimeStep(Generations) = 0;
 	
 	DLLExport unsigned int getDIM() { return DIM;};
-	DLLExport int* getGrid() { return pFlatGrid;};
+	DLLExport unsigned int* getGrid() { return pFlatGrid;};
 
 protected :
 	const unsigned DIM; //Should make const?
-	int *pFlatGrid;
+	unsigned int *pFlatGrid;
 
 };
 

@@ -10,13 +10,15 @@ class Generations : public Abstract2DCA {
 public :
 	DLLExport __device__ __host__ Generations() {}
 	DLLExport __device__ __host__ ~Generations() {}
+	virtual void test()  {}
 
-	__device__  int applyFunction(int* g_data, int x, int y, int xDIM) { 
+	__device__  int applyFunction(unsigned int* g_data, int x, int y, int xDIM) { 
 		
 		int state = g_data[x * xDIM + y];
 		int temp = 0;
+
 		//generations specialism
-		if (state >= 1) {
+		if (state > 1) {
 			if(state >= m_states - 1) {
 				//reset this state next go
 				return state;
@@ -30,17 +32,21 @@ public :
 		
 			//we only care about neighbours when we know we're in a ready state
 			int liveCells =  getNeighbourhood(g_data, x * xDIM, y, xDIM, neighbourhoodType);
-		
-			//for (int i = 0; i < surviveSize; i++) {
-			//	if (state && liveCells == surviveNo[i]) return state | (1 << noBits);;
-			//}
-			//
-
+	
+			for (int i = 0; i < surviveSize; i++) {
+				if (state == 1 && liveCells == surviveNo[i]) return state | (1 << noBits);;
+			}
+			
 			for (int i = 0; i < bornSize; ++i) {		
 				if (state == 0 && liveCells == bornNo[i]) return state | (1 << noBits);;
 			}
+			
+			if (state == 1) return state | (2 << noBits);
 		}
+
+
 		return state;
+
 	}
 };
 

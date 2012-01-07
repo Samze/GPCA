@@ -9,8 +9,9 @@ class OuterTotalistic : public Abstract2DCA {
 public :
 	DLLExport __device__ __host__ OuterTotalistic() {}
 	DLLExport __device__ __host__ ~OuterTotalistic() {}
+	virtual void test() {}
 
-	__device__ __host__ int applyFunction(int* g_data, int x, int y, int xDIM) { 
+	__device__ __host__ int applyFunction(unsigned int* g_data, int x, int y, int xDIM) { 
 		
 		int state = g_data[x * xDIM + y];
 		

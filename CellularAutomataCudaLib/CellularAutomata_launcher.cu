@@ -6,9 +6,9 @@
 
 
 template<typename CAFunction>
-extern float CUDATimeStep(int* pFlatGrid, int DIM, CAFunction *func) {
+extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 
-	int *dev_pFlatGrid; //Pointers to device allocated memory
+	unsigned int *dev_pFlatGrid; //Pointers to device allocated memory
 	int *dev_DIM;
 	int *dev_born; //to bornNo
 	int *dev_survive; //to surviveNo
@@ -22,7 +22,7 @@ extern float CUDATimeStep(int* pFlatGrid, int DIM, CAFunction *func) {
 
 	cudaEventRecord(start,0);
 
-	size_t noCells = DIM * DIM * sizeof(int);
+	size_t noCells = DIM * DIM * sizeof(unsigned int);
 	//Might need to flatten the 2d array ormaybe try "int2" type
 	
 	//TODO fix this name

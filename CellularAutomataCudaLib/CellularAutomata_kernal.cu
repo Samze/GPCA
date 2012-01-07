@@ -1,7 +1,7 @@
 //#include "cellularautomata_kernal_DLL.h"
 
 template <typename CAFunction>
-__global__ void kernal(int* g_data, int* DIM, CAFunction* func) {
+__global__ void kernal(unsigned int* g_data, int* DIM, CAFunction* func) {
 	
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
     int y = threadIdx.y + blockIdx.y * blockDim.y;
