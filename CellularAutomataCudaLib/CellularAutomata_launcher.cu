@@ -14,6 +14,9 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 	int *dev_survive; //to surviveNo
 	CAFunction *dev_func;
 
+	int* tempBorn;
+	int* tempSurv;
+
 	cudaEvent_t start,stop; //Events for timings
 
 	//START: Record duration of GPGPU processing
@@ -42,10 +45,14 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 
 
 	//copy our two dynamic arrays 
-	cudaMemcpy(dev_survive, func->surviveNo, sizeof(int) * func->surviveSize,
-		cudaMemcpyHostToDevice);
 	cudaMemcpy(dev_born, func->bornNo, sizeof(int) * func->bornSize,
 		cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_survive, func->surviveNo, sizeof(int) * func->surviveSize,
+		cudaMemcpyHostToDevice);
+
+	//We want to temporarily hold our pointers so we can reassign them after the object copy...
+	tempBorn = func->bornNo;
+	tempSurv = func->surviveNo;
 
 	//reassign our pointers so we know where we put our dynamic arrays
 	func->surviveNo = dev_survive;
@@ -67,6 +74,10 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 	//Copy back to host
 	cudaMemcpy(pFlatGrid, dev_pFlatGrid, noCells,
 		cudaMemcpyDeviceToHost);
+
+	//Reassign our dynamic array pointers
+	func->surviveNo = tempSurv;
+	func->bornNo = tempBorn;
 
 	//STOP : processing done
 	cudaEventRecord(stop,0);
@@ -90,9 +101,9 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 	//Free memory on Device
 	cudaFree(dev_pFlatGrid);
 	cudaFree(dev_DIM);
-	cudaFree(dev_func);
 	cudaFree(dev_born);
 	cudaFree(dev_survive);
+	cudaFree(dev_func);
 
 	return elapsedTime;
 }

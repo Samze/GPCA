@@ -1,6 +1,16 @@
 #include "CellularAutomata.h"
 #include <cstdlib>
 
+CellularAutomata::~CellularAutomata() {
+
+	delete[] pFlatGrid;
+	delete caRule;
+
+	pFlatGrid = NULL;
+	caRule = NULL;
+
+
+}
 CellularAutomata::CellularAutomata(int dimension, int range) : DIM(dimension)
 {
 	//initialize array based on dim with random values
@@ -16,7 +26,7 @@ CellularAutomata::CellularAutomata(int dimension, int range) : DIM(dimension)
 		//
 
 
-		if (i > DIM/2 && i < DIM/2 + 26 && j > DIM/2 && j < DIM/2 + 26) {
+		if (i > DIM/2 && i < DIM/2 + 32 && j > DIM/2 && j < DIM/2 + 32) {
 			pFlatGrid[i * DIM + j] = 1;
 		}
 		else {
@@ -56,9 +66,3 @@ CellularAutomata::CellularAutomata(int dimension, int range) : DIM(dimension)
 
 CellularAutomata::CellularAutomata(unsigned int *pFlatGrid, int dimension) : DIM(dimension), pFlatGrid(pFlatGrid) {}
 
-CellularAutomata::~CellularAutomata()
-{
-	//clean up our allocated array
-	delete [] pFlatGrid;
-
-}

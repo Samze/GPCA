@@ -11,11 +11,12 @@ public:
 	DLLExport Abstract2DCA(void);
 	virtual DLLExport ~Abstract2DCA(void);
 	virtual void test() = 0;
-	
+
 	int m_states;
+
 	int noBits;
 	int maxBits;
-	
+
     int* surviveNo;
     int  surviveSize;
 
@@ -23,8 +24,9 @@ public:
     int bornSize;
 
 	int neighbourhoodType;
-
+	
 	DLLExport void setStates(int);
+	DLLExport int getNoStates() { return m_states;};
 
 	__device__ __host__ void setSurviveNo(int* list, int size) {
 		surviveNo = list;

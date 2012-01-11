@@ -8,6 +8,8 @@ Abstract2DCA::Abstract2DCA(void)
 
 Abstract2DCA::~Abstract2DCA(void)
 {
+	delete surviveNo;
+	delete bornNo;
 }
 
 void Abstract2DCA::setStates(int states) {
