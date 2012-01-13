@@ -25,13 +25,14 @@ CellularAutomata::CellularAutomata(int dimension, int range) : DIM(dimension)
 		//pFlatGrid[i * DIM + j] = random == range - 1 ? 1 : 0;
 		//
 
-
-		if (i > DIM/2 && i < DIM/2 + 32 && j > DIM/2 && j < DIM/2 + 32) {
+			
+		pFlatGrid[i * DIM + j] = 1;
+	/*	if (i > DIM/2 && i < DIM/2 + 32 && j > DIM/2 && j < DIM/2 + 32) {
 			pFlatGrid[i * DIM + j] = 1;
 		}
 		else {
 			pFlatGrid[i * DIM + j] = 0;
-		}
+		}*/
 	
 		////create cube
 		//int size = 1;
@@ -82,7 +83,7 @@ void CellularAutomata::generate3DGrid(int dimension, int range)
 			int random = std::rand() % range;
 			//assign
 			//pFlatGrid[(i * DIM) + j + (k * (DIM * DIM))] = random == range - 1 ? 1 : 1;
-			pFlatGrid[(i * DIM) + j + (k * DIM * DIM)] = 1;
+			pFlatGrid[(k * DIM * DIM) + (i * DIM) + j] = 1;
 			}
 		}
 	}

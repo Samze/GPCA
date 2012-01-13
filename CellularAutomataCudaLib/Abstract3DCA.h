@@ -56,139 +56,146 @@ public:
 
 		int zDIM = xDIM * xDIM;
 
-		//z = -1
+		bool xBounds = (x/xDIM) < xDIM - 1;
+		bool zBounds = (z/zDIM) < zDIM - 1;
 
-		// [-1,-1]
+		// [-1,-1,-1]
 		if (x != 0 && y != 0 && z != 0)
 			if ((g_data[x - xDIM + y - 1 + z - zDIM] & maxBits) == 1)
 				++numlivecells;
 
-		// [0,-1]
-		if ( y != 0 && z != 0)
-			if ((g_data[x + y - 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
-		// [1,-1]
-		if (x != xDIM - 1 && y != 0 && z != 0)
-			if ((g_data[x + xDIM + y - 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
-		// [-1,0]
-		if (x != 0 && z != 0)
-			if ((g_data[x - xDIM + y + z - zDIM] & maxBits)  == 1)
-				++numlivecells;	
-
-		// [0,0]
-		if (z != 0)
-			if ((g_data[x + y + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
-		// [1,0]
-		if (x != xDIM - 1 && z != 0)
-			if ((g_data[x + xDIM + y + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
-		// [-1,1]
-		if (x != 0 && y != xDIM -1 && z != 0 )
-			if ((g_data[x - xDIM + y + 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
-		// [0,1]
-		if (y != xDIM -1 && z != 0 )
-			if ((g_data[x + y + 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
-		// [1,1]
-		if (x != xDIM -1 && y != xDIM - 1 && z != 0 )
-			if ((g_data[x + xDIM + y + 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
-		//z = 0
-
-		// [-1,-1]
+		// [-1,-1,0]
 		if (x != 0 && y != 0)
 			if ((g_data[x - xDIM + y - 1 + z] & maxBits) == 1)
 				++numlivecells;
 
-		// [0,-1]
-		if ( y != 0)
-			if ((g_data[x + y - 1  + z] & maxBits) == 1)
+		// [-1,-1,1]
+		if (x != 0 && y != 0 && zBounds)
+			if ((g_data[x - xDIM + y - 1 + z + zDIM ] & maxBits) == 1)
 				++numlivecells;
 
-		// [1,-1]
-		if (x != xDIM - 1 && y != 0 )
-			if ((g_data[x + xDIM + y - 1  + z] & maxBits) == 1)
-				++numlivecells;
 
-		// [-1,0]
+		// [-1,0,-1]
+		if (x != 0 && z != 0)
+			if ((g_data[x - xDIM + y + z - zDIM] & maxBits)  == 1)
+				++numlivecells;	
+
+		// [-1,0,0]
 		if (x != 0)
 			if ((g_data[x - xDIM + y  + z] & maxBits)  == 1)
 				++numlivecells;	
 
-		// [1,0]
-		if (x != xDIM - 1)
-			if ((g_data[x + xDIM + y  + z] & maxBits) == 1)
+		// [-1,0,1]
+		if (x != 0  && zBounds)
+			if ((g_data[x - xDIM + y + z + zDIM ] & maxBits)  == 1)
+				++numlivecells;	
+		
+		// [-1,1,-1]
+		if (x != 0 && y != xDIM -1 && z != 0 )
+			if ((g_data[x - xDIM + y + 1 + z - zDIM] & maxBits) == 1)
 				++numlivecells;
 
-		// [-1,1]
+		// [-1,1,0]
 		if (x != 0 && y != xDIM -1 )
 			if ((g_data[x - xDIM + y + 1  + z] & maxBits) == 1)
 				++numlivecells;
 
-		// [0,1]
+		// [-1,1,1]
+		if (x != 0 && y != xDIM -1 && zBounds)
+			if ((g_data[x - xDIM + y + 1 + z + zDIM ] & maxBits) == 1)
+				++numlivecells;
+
+		//x = 0
+
+		// [0,-1,-1]
+		if ( y != 0 && z != 0)
+			if ((g_data[x + y - 1 + z - zDIM] & maxBits) == 1)
+				++numlivecells;
+
+		// [0,-1,0]
+		if ( y != 0)
+			if ((g_data[x + y - 1  + z] & maxBits) == 1)
+				++numlivecells;	
+
+		// [0,-1,1]
+		if ( y != 0  && zBounds)
+			if ((g_data[x + y - 1 + z + zDIM ] & maxBits) == 1)
+				++numlivecells;
+		
+		// [0,0,-1]
+		if (z != 0)
+			if ((g_data[x + y + z - zDIM] & maxBits) == 1)
+				++numlivecells;
+	
+		//0,0,0
+
+		// [0,0,1]
+		if (zBounds)
+			if ((g_data[x + y + z + zDIM ] & maxBits) == 1)
+				++numlivecells;
+
+		// [0,1,-1]
+		if (y != xDIM -1 && z != 0 )
+			if ((g_data[x + y + 1 + z - zDIM] & maxBits) == 1)
+				++numlivecells;
+
+		// [0,1,0]
 		if (y != xDIM -1 )
 			if ((g_data[x + y + 1  + z] & maxBits) == 1)
 				++numlivecells;
 
-		// [1,1]
-		if (x != xDIM -1 && y != xDIM - 1 )
-			if ((g_data[x + xDIM + y + 1  + z] & maxBits) == 1)
-				++numlivecells;
-
-		//z = 1
-		
-		// [-1,-1]
-		if (x != 0 && y != 0 && z != zDIM - 1)
-			if ((g_data[x - xDIM + y - 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
-		// [0,-1]
-		if ( y != 0  && z != zDIM - 1)
-			if ((g_data[x + y - 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
-		// [1,-1]
-		if (x != xDIM - 1 && y != 0  && z != zDIM - 1)
-			if ((g_data[x + xDIM + y - 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
-		// [-1,0]
-		if (x != 0  && z != zDIM - 1)
-			if ((g_data[x - xDIM + y + z + zDIM ] & maxBits)  == 1)
-				++numlivecells;	
-		
-		// [0,0]
-		if (z != zDIM - 1)
-			if ((g_data[x + y + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
-		// [1,0]
-		if (x != xDIM - 1  && z != zDIM - 1)
-			if ((g_data[x + xDIM + y + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
-		// [-1,1]
-		if (x != 0 && y != xDIM -1 && z != zDIM - 1 )
-			if ((g_data[x - xDIM + y + 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
-		// [0,1]
-		if (y != xDIM -1 && z != zDIM - 1 )
+		// [0,1,1]
+		if (y != xDIM -1 && zBounds )
 			if ((g_data[x + y + 1 + z + zDIM ] & maxBits) == 1)
 				++numlivecells;
 
-		// [1,1]
-		if (x != xDIM -1 && y != xDIM - 1 && z != zDIM - 1 )
+
+
+		//x = 1
+
+		// [1,-1,-1]
+		if (xBounds && y != 0 && z != 0)
+			if ((g_data[x + xDIM + y - 1 + z - zDIM] & maxBits) == 1)
+				++numlivecells;
+
+		// [1,-1,0]
+		if (xBounds && y != 0 )
+			if ((g_data[x + xDIM + y - 1  + z] & maxBits) == 1)
+				++numlivecells;
+
+		// [1,-1,1]
+		if (xBounds && y != 0  && zBounds)
+			if ((g_data[x + xDIM + y - 1 + z + zDIM ] & maxBits) == 1)
+				++numlivecells;
+
+		// [1,0,-1]
+		if (xBounds && z != 0)
+			if ((g_data[x + xDIM + y + z - zDIM] & maxBits) == 1)
+				++numlivecells;
+
+		// [1,0,0]
+		if (xBounds)
+			if ((g_data[x + xDIM + y  + z] & maxBits) == 1)
+				++numlivecells;
+
+		// [1,0,1]
+		if (xBounds  && zBounds)
+			if ((g_data[x + xDIM + y + z + zDIM ] & maxBits) == 1)
+				++numlivecells;
+
+
+		// [1,1,-1]
+		if (xBounds && y != xDIM - 1 && z != 0 )
+			if ((g_data[x + xDIM + y + 1 + z - zDIM] & maxBits) == 1)
+				++numlivecells;
+
+		// [1,1,0]
+		if (xBounds && y != xDIM - 1 )
+			if ((g_data[x + xDIM + y + 1  + z] & maxBits) == 1)
+				++numlivecells;
+
+		// [1,1,1]
+		if (xBounds && y != xDIM - 1 && zBounds )
 			if ((g_data[x + xDIM + y + 1 + z + zDIM ] & maxBits) == 1)
 				++numlivecells;
 
