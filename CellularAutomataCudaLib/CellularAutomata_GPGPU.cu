@@ -14,6 +14,7 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 	
 	Generations* v = dynamic_cast<Generations*>(caRule);
 	OuterTotalistic* v2 = dynamic_cast<OuterTotalistic*>(caRule);
+	Generations3D* v3 = dynamic_cast<Generations3D*>(caRule);
 
 	if(v != 0) {
 		return CUDATimeStep(pFlatGrid, DIM, v);
@@ -21,16 +22,8 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 	else if (v2 != 0) {
 		return CUDATimeStep(pFlatGrid, DIM, v2);
 	}
-
+	else if(v3 != 0) {
+		return CUDATimeStep3D(pFlatGrid,DIM,v3);
+	}
 	return -1;
-}
-
-float CellularAutomata_GPGPU::nextTimeStep(OuterTotalistic cellA) {
-
-	return CUDATimeStep(pFlatGrid, DIM, &cellA);
-}
-
-float CellularAutomata_GPGPU::nextTimeStep(Generations cellA) {
-
-	return CUDATimeStep(pFlatGrid, DIM, &cellA);
 }

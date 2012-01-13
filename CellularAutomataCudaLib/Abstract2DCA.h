@@ -1,4 +1,4 @@
-#pragma once //TODO Get rid of these
+#pragma once
 
 #include "device_launch_parameters.h"
 #include "AbstractCellularAutomata.h"
@@ -9,7 +9,7 @@ class Abstract2DCA : public AbstractCellularAutomata
 
 public:
 	DLLExport Abstract2DCA(void);
-	virtual DLLExport ~Abstract2DCA(void);
+	DLLExport ~Abstract2DCA(void); //This was virtual...????
 	virtual void test() = 0;
 
 	int m_states;

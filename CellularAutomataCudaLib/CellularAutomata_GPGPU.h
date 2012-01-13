@@ -6,12 +6,14 @@
 
 #include "OuterTotalistic.h"
 #include "Generations.h"
+//#include "Generations3D.h"
+
 
 
 #define DLLExport __declspec(dllexport)
 
 //forward declaration.
-template<typename CAFunction> extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func);
+//template<typename CAFunction> extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func);
 
 class CellularAutomata_GPGPU : public CellularAutomata
 {
@@ -21,8 +23,6 @@ public:
 	DLLExport ~CellularAutomata_GPGPU();
 	
 	float nextTimeStep();
-	float nextTimeStep(OuterTotalistic);
-	float nextTimeStep(Generations);
 
 };
 
