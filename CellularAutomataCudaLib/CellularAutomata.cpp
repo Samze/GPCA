@@ -11,7 +11,8 @@ CellularAutomata::~CellularAutomata() {
 
 
 }
-CellularAutomata::CellularAutomata(int dimension, int range) : DIM(dimension)
+CellularAutomata::CellularAutomata(DimensionType type, int dimension, int range) : dimType(type),
+DIM(dimension)
 {
 	//initialize array based on dim with random values
 	pFlatGrid = new unsigned int[DIM * DIM];
@@ -65,7 +66,7 @@ CellularAutomata::CellularAutomata(int dimension, int range) : DIM(dimension)
 	}
 }
 
-CellularAutomata::CellularAutomata(unsigned int *pFlatGrid, int dimension) : DIM(dimension), pFlatGrid(pFlatGrid) {
+CellularAutomata::CellularAutomata(DimensionType type, unsigned int *pFlatGrid, int dimension) : dimType(type), DIM(dimension), pFlatGrid(pFlatGrid)  {
 
 }
 
@@ -82,8 +83,8 @@ void CellularAutomata::generate3DGrid(int dimension, int range)
 			//get random state value bettwen 0 & 1;
 			int random = std::rand() % range;
 			//assign
-			//pFlatGrid[(i * DIM) + j + (k * (DIM * DIM))] = random == range - 1 ? 1 : 1;
-			pFlatGrid[(k * DIM * DIM) + (i * DIM) + j] = 1;
+		//	pFlatGrid[(i * DIM) + j + (k * (DIM * DIM))] = random == range - 1 ? 1 : 1;
+			pFlatGrid[(k * DIM * DIM) + (i * DIM) + j] = 0;
 			}
 		}
 	}

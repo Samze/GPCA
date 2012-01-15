@@ -144,7 +144,7 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	//Make our 2D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread.
 	dim3 blocks (DIM,DIM/2,1);
-	dim3 threads(2,2,2);
+	dim3 threads(DIM/2,DIM/2,2);
 
 	//copy our two dynamic arrays 
 	cudaMemcpy(dev_born, func->bornNo, sizeof(int) * func->bornSize,

@@ -18,8 +18,8 @@
 class CellularAutomata_GPGPU : public CellularAutomata
 {
 public:
-	DLLExport CellularAutomata_GPGPU(int, int);
-	DLLExport CellularAutomata_GPGPU(unsigned int*, int);
+	DLLExport CellularAutomata_GPGPU(DimensionType type, int, int);
+	DLLExport CellularAutomata_GPGPU(DimensionType type, unsigned int*, int);
 	DLLExport ~CellularAutomata_GPGPU();
 	
 	float nextTimeStep();

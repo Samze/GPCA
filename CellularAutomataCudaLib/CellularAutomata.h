@@ -13,8 +13,15 @@ class CellularAutomata
 {
 
 public:
-	DLLExport CellularAutomata(int,int); //random data
-	DLLExport CellularAutomata(unsigned int*, int);
+	
+	enum DimensionType
+	{
+		TWO_D,
+		THREE_D
+	};
+
+	DLLExport CellularAutomata(DimensionType,int,int); //random data
+	DLLExport CellularAutomata(DimensionType,unsigned int*, int);
 	DLLExport ~CellularAutomata();
 	//DLLExport virtual float nextTimeStep() = 0;
 	
@@ -26,12 +33,12 @@ public:
 	DLLExport AbstractCellularAutomata* getCARule() { return caRule; };
 	DLLExport void setCARule(AbstractCellularAutomata* ca) { caRule = ca;};
 	DLLExport void generate3DGrid(int,int);
-
+	
+	DimensionType dimType;
 protected :
 	const unsigned DIM; //Should make const?
 	unsigned int *pFlatGrid;
 	AbstractCellularAutomata* caRule;
-
 };
 
 #endif // CELLULARAUTOMATA_DLL_H

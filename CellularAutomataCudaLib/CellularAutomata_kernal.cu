@@ -30,6 +30,11 @@ __global__ void kernal3D(unsigned int* g_data, int* DIM, CAFunction* func) {
 		x = threadIdx.x + (blockIdx.x - gridDim.x/2) * blockDim.x;
 	}
 
+	//if( blockIdx.y >= gridDim.y/2) {
+	//	z = threadIdx.z + 2;
+	//	y = threadIdx.y + (blockIdx.y - gridDim.y/2) * blockDim.y;
+	//}
+
 
 	if( !(x > *DIM) &&  !(y > *DIM) && !(z > *DIM)) {//Guard against launching too many threads
 	//set new cell state.
