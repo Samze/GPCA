@@ -22,13 +22,13 @@ __global__ void kernal3D(unsigned int* g_data, int* DIM, CAFunction* func) {
 	
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
     int y = threadIdx.y + blockIdx.y * blockDim.y;
-	int z = threadIdx.z;
+	int z = threadIdx.z;// + blockIdx.z * blockDim.z;
 
 	//This is our fake z area
-	if( blockIdx.x >= gridDim.x/2) {
-		z = threadIdx.z + blockDim.z;
-		x = threadIdx.x + (blockIdx.x - gridDim.x/2) * blockDim.x;
-	}
+	//if( blockIdx.x >= gridDim.x/2) {
+	//	z = threadIdx.z + blockDim.z;
+	//	x = threadIdx.x + (blockIdx.x - gridDim.x/2) * blockDim.x;
+	//}
 
 	//if( blockIdx.y >= gridDim.y/2) {
 	//	z = threadIdx.z + 2;

@@ -56,8 +56,11 @@ public:
 
 		int zDIM = xDIM * xDIM;
 
-		bool xBounds = (x/xDIM) < xDIM - 1;
-		bool zBounds = (z/zDIM) < zDIM - 1;
+		//bool xBounds = (x + (xDIM - 1)/xDIM) < xDIM;
+		//bool zBounds = (z + (zDIM - 1)/zDIM) < zDIM;
+
+		bool xBounds = (x / xDIM) < xDIM -1;
+		bool zBounds = (z / zDIM) < xDIM -1;
 
 		// [-1,-1,-1]
 		if (x != 0 && y != 0 && z != 0)
