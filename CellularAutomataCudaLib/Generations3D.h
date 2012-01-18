@@ -23,6 +23,8 @@ public :
 			//we only care about neighbours when we know we're in a ready state
 			int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM, neighbourhoodType);
 	
+			neighbourCount[xAltered + y + zAltered] = liveCells;
+
 			for (int i = 0; i < surviveSize; i++) {
 				if (state == 1 && liveCells == surviveNo[i]) return state | (1 << noBits);
 			}

@@ -31,7 +31,7 @@ public:
 	DLLExport unsigned int* getGrid() { return pFlatGrid;};
 
 	DLLExport AbstractCellularAutomata* getCARule() { return caRule; };
-	DLLExport void setCARule(AbstractCellularAutomata* ca) { caRule = ca;};
+	DLLExport void setCARule(AbstractCellularAutomata* ca);
 	DLLExport void generate3DGrid(int,int);
 	
 	DimensionType dimType;

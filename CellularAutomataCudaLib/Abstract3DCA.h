@@ -20,6 +20,8 @@ public:
 
 	int* bornNo;
     int bornSize;
+	
+	unsigned int *neighbourCount;
 
 	int neighbourhoodType;
 	//Always better to use constants than defines (effective C++)

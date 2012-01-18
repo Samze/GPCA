@@ -115,10 +115,12 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	int *dev_DIM;
 	int *dev_born; //to bornNo
 	int *dev_survive; //to surviveNo
+	unsigned int* dev_neighCount;
 	CAFunction *dev_func;
 
 	int* tempBorn;
 	int* tempSurv;
+	unsigned int* tempNeigh;
 
 	cudaEvent_t start,stop; //Events for timings
 
@@ -140,12 +142,16 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 
 	cudaMalloc((void**) &dev_born, sizeof(int) * func->bornSize);
 	cudaMalloc((void**) &dev_survive, sizeof(int) * func->surviveSize);
+	cudaMalloc((void**) &dev_neighCount, noCells);
 
 
-	//Make our 2D grid of blocks & threads (DIM/No of threads)
+	//Make our 3D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread.
-	dim3 blocks (1,1,1);
-	dim3 threads(8,8,8);
+	/*dim3 blocks (1,1,1);
+	dim3 threads(8,8,8);*/
+	
+	dim3 threads(8,8);
+	dim3 blocks (DIM/threads.x + 1,(DIM/threads.y + 1) * DIM);
 
 	//copy our two dynamic arrays 
 	cudaMemcpy(dev_born, func->bornNo, sizeof(int) * func->bornSize,
@@ -153,13 +159,18 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	cudaMemcpy(dev_survive, func->surviveNo, sizeof(int) * func->surviveSize,
 		cudaMemcpyHostToDevice);
 
+	cudaMemcpy(dev_neighCount, func->neighbourCount, noCells,
+		cudaMemcpyHostToDevice);
+
 	//We want to temporarily hold our pointers so we can reassign them after the object copy...
 	tempBorn = func->bornNo;
 	tempSurv = func->surviveNo;
+	tempNeigh = func->neighbourCount;
 
 	//reassign our pointers so we know where we put our dynamic arrays
 	func->surviveNo = dev_survive;
 	func->bornNo = dev_born;
+	func->neighbourCount = dev_neighCount;
 	
 	
 	
@@ -171,16 +182,25 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	cudaMemcpy(dev_func, func, sizeof(CAFunction),
 		cudaMemcpyHostToDevice);
 
+	//TODO memory leak?
+	//delete[] pFlatGrid;
 
-	kernal3D<<<blocks,threads>>>(dev_pFlatGrid, dev_DIM, dev_func);
+	kernal3DTest<<<blocks,threads>>>(dev_pFlatGrid, dev_DIM, dev_func);
 
 	//Copy back to host
 	cudaMemcpy(pFlatGrid, dev_pFlatGrid, noCells,
 		cudaMemcpyDeviceToHost);
 
+	//Because of our func currently holding a device pointer, we need to use a
+	//temp pointer.
+	cudaMemcpy(tempNeigh, dev_neighCount, noCells,
+		cudaMemcpyDeviceToHost);
+
+
 	//Reassign our dynamic array pointers
 	func->surviveNo = tempSurv;
 	func->bornNo = tempBorn;
+	func->neighbourCount = tempNeigh;
 
 	//STOP : processing done
 	cudaEventRecord(stop,0);
@@ -208,6 +228,7 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	cudaFree(dev_born);
 	cudaFree(dev_survive);
 	cudaFree(dev_func);
+	cudaFree(dev_neighCount);
 
 	return elapsedTime;
 }
