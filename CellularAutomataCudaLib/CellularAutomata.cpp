@@ -1,5 +1,4 @@
 #include "CellularAutomata.h"
-#include <cstdlib>
 
 CellularAutomata::~CellularAutomata() {
 

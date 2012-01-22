@@ -150,7 +150,7 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	/*dim3 blocks (1,1,1);
 	dim3 threads(8,8,8);*/
 	
-	dim3 threads(8,8);
+	dim3 threads(16,16);
 	dim3 blocks (DIM/threads.x + 1,(DIM/threads.y + 1) * DIM);
 
 	//copy our two dynamic arrays 
@@ -232,3 +232,5 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 
 	return elapsedTime;
 }
+
+

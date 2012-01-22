@@ -1,5 +1,6 @@
 #include "CellularAutomata_GPGPU.h"
 
+
 CellularAutomata_GPGPU::CellularAutomata_GPGPU(DimensionType type, int dim, int seed) : CellularAutomata(type, dim, seed){ }
 
 
@@ -26,4 +27,42 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 		return CUDATimeStep3D(pFlatGrid,DIM,v3);
 	}
 	return -1;
+}
+
+
+
+unsigned int  CellularAutomata_GPGPU::initCudaForGL() {
+
+	
+	//cudaGLSetGLDevice(cutGetMaxGflopsDeviceId());
+
+	return 1;
+}
+
+void CellularAutomata_GPGPU::cudaBindPDO(GLuint* pbo) {
+
+	//cudaGLRegisterBufferObject(*pbo);
+
+}
+
+void CellularAutomata_GPGPU::cudaUnBindPDO(GLuint* pbo) {
+	//cudaGLUnregisterBufferObject(*pbo);
+
+}
+
+void CellularAutomata_GPGPU::runCuda(GLuint* pbo) {
+
+	uchar4 *dev_ptr = NULL;
+
+	//cudaGLMapBufferObject((void**)&dev_ptr,*pbo);
+
+	//launch_kernalPDO2(dev_ptr,100,100);
+
+//	cudaGLUnmapBufferObject(*pbo);
+
+}
+
+extern "C" void CellularAutomata_GPGPU::launch_kernalPDO2(uchar4* pos,unsigned int w,unsigned int h) {
+
+
 }
