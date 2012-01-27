@@ -1,4 +1,3 @@
-//#include "cellularautomata_kernal_DLL.h"
 
 template <typename CAFunction>
 __global__ void kernal(unsigned int* g_data, int* DIM, CAFunction* func) {

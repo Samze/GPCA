@@ -9,13 +9,14 @@ class Abstract2DCA : public AbstractCellularAutomata
 
 public:
 	DLLExport Abstract2DCA(void);
-	DLLExport ~Abstract2DCA(void); //This was virtual...????
-	virtual void test() = 0;
+	DLLExport virtual ~Abstract2DCA(void); //This was virtual...????
 
-	int m_states;
-
-	int noBits;
-	int maxBits;
+	//Always better to use constants than defines (effective C++)
+	//Using 8 and 4 as the number of neighbours..
+	static const int MOORE = 8;
+	static const int VON_NEUMANN = 4;
+	
+	int neighbourhoodType;
 
     int* surviveNo;
     int  surviveSize;
@@ -23,10 +24,6 @@ public:
 	int* bornNo;
     int bornSize;
 
-	int neighbourhoodType;
-	
-	DLLExport void setStates(int);
-	DLLExport int getNoStates() { return m_states;};
 
 	__device__ __host__ void setSurviveNo(int* list, int size) {
 		surviveNo = list;
@@ -37,102 +34,76 @@ public:
 		bornNo = list;
 		bornSize = size;
 	}
-
-
-	//Always better to use constants than defines (effective C++)
-	static const int MOORE = 0;
-	static const int VON_NEUMANN = 1;
 	
-	__device__ __host__ int getNeighbourhood(unsigned int* g_data, int x, int y, int xDIM, int neighbourhood) {
+	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int xDIM) {
 
-		switch(neighbourhood) {
+		switch(neighbourhoodType) {
 		case MOORE:
-			return getMooresNeighbourhood(g_data,x,y,xDIM);
+			getMooresNeighbourhood(neighbourStates,g_data,x,y,xDIM);
+			break;
 		case VON_NEUMANN:
-			return getVonNeumannNeighbourhood(g_data,x,y,xDIM);
+			getVonNeumannNeighbourhood(neighbourStates,g_data,x,y,xDIM);
+			break;
 		default:
-			return 0;
+			break;
 		}
 	}
 
-	//probably a much better way to figure out the moores neighbourhood
-	__device__ __host__ int getMooresNeighbourhood(unsigned int* g_data, int x, int y, int xDIM) {
 
-		//get neighbours for cell x,y
-		int numlivecells = 0;
+	//probably a much better way to figure out the moores neighbourhood, populates a max of 8 neighbours
+	__device__ __host__ void getMooresNeighbourhood(int* neighbours, unsigned int* g_data, int x, int y, int xDIM) {
 
 		// [-1,-1]
 		if (x != 0 && y != 0)
-			if ((g_data[x - xDIM + y - 1] & maxBits) == 1)
-				++numlivecells;
+			neighbours[0] = g_data[x - xDIM + y - 1];
 
 		// [0,-1]
 		if ( y != 0)
-			if ((g_data[x + y - 1] & maxBits) == 1)
-				++numlivecells;
+			neighbours[1] = g_data[x + y - 1];
 
 		// [1,-1]
 		if (x != xDIM - 1 && y != 0 )
-			if ((g_data[x + xDIM + y - 1] & maxBits) == 1)
-				++numlivecells;
+			neighbours[2] = g_data[x + xDIM + y - 1];
 
 		// [-1,0]
 		if (x != 0)
-			if ((g_data[x - xDIM + y] & maxBits)  == 1)
-				++numlivecells;	
+			neighbours[3] = g_data[x - xDIM + y];
 
 		// [1,0]
 		if (x != xDIM - 1)
-			if ((g_data[x + xDIM + y] & maxBits) == 1)
-				++numlivecells;
+			neighbours[4] =  g_data[x + xDIM + y];
 
 		// [-1,1]
 		if (x != 0 && y != xDIM -1 )
-			if ((g_data[x - xDIM + y + 1] & maxBits) == 1)
-				++numlivecells;
+			neighbours[5] = g_data[x - xDIM + y + 1];
 
 		// [0,1]
 		if (y != xDIM -1 )
-			if ((g_data[x + y + 1] & maxBits) == 1)
-				++numlivecells;
+			neighbours[6] = g_data[x + y + 1];
 
 		// [1,1]
 		if (x != xDIM -1 && y != xDIM - 1 )
-			if ((g_data[x + xDIM + y + 1] & maxBits) == 1)
-				++numlivecells;
+			neighbours[7] = g_data[x + xDIM + y + 1];
 
-		return numlivecells;
 	}
-
-		//probably a much better way to figure out the moores neighbourhood
-	__device__ __host__  int getVonNeumannNeighbourhood(unsigned int* g_data, int x, int y, int xDIM) {
-
-		//get neighbours for cell x,y
-		int numlivecells = 0;
+	//probably a much better way to figure out the moores neighbourhood, populates a max of 8 neighbours
+	__device__ __host__ void getVonNeumannNeighbourhood(int* neighbours, unsigned int* g_data, int x, int y, int xDIM) {
 
 		// [0,-1]
 		if ( y != 0)
-			if (g_data[x + y - 1] & 1 != 0)
-				++numlivecells;
-
+			neighbours[0] = g_data[x + y - 1];
 
 		// [-1,0]
 		if (x != 0)
-			if (g_data[x - xDIM + y] & 1 != 0)
-				++numlivecells;	
+			neighbours[1] = g_data[x - xDIM + y];
 
 		// [1,0]
 		if (x != xDIM - 1)
-			if (g_data[x + xDIM + y] & 1 != 0)
-				++numlivecells;
+			neighbours[2] =  g_data[x + xDIM + y];
 
-	
 		// [0,1]
 		if (y != xDIM -1 )
-			if (g_data[x + y + 1] & 1 != 0)
-				++numlivecells;
-
-		return numlivecells;
+			neighbours[3] = g_data[x + y + 1];
 	}
 };
 

@@ -10,22 +10,22 @@ class AbstractCellularAutomata
 
 public:
 	DLLExport AbstractCellularAutomata(void) {}
-	DLLExport ~AbstractCellularAutomata(void) {}
-	virtual void test() = 0;
+	DLLExport virtual ~AbstractCellularAutomata(void) {}
 	
-	DLLExport virtual int getNoStates() = 0;
+	DLLExport __host__ void setStates(unsigned int states);
+	DLLExport __host__ int getNoStates() { return noStates;}
+	__host__ int getNoBits() { return noBits;}
+
+protected:
+	int noStates;
+	int noBits;
+	int maxBits;
 
 	//This next line should be here to provide 'proper' virtual inheritence, sadly it is only supported on CUDA sm_2x architecture.
 	//__device__ __host__ int applyFunction(int*,int,int,int) {
 	//	return 3;
 	//}
 
-	__device__ int getX() {
-		return testX;
-	}
-
-private:
-	int testX;
 };
 
 

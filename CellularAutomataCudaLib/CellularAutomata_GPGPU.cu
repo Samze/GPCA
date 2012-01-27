@@ -33,36 +33,78 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 
 unsigned int  CellularAutomata_GPGPU::initCudaForGL() {
 
-	
-	//cudaGLSetGLDevice(cutGetMaxGflopsDeviceId());
-
+	cudaGLSetGLDevice(cutGetMaxGflopsDeviceId());
+	errorCheck();
 	return 1;
 }
 
-void CellularAutomata_GPGPU::cudaBindPDO(GLuint* pbo) {
+void CellularAutomata_GPGPU::cudaBindPDO(GLuint pbo) {
 
-	//cudaGLRegisterBufferObject(*pbo);
-
+	//cudaGraphicsGLRegisterBuffer(ap
+	//cudaGLRegisterBufferObject(pbo);
+	cudaGraphicsGLRegisterBuffer(&positionsVBO_CUDA,pbo,cudaGraphicsMapFlagsWriteDiscard);
+	errorCheck();
 }
 
-void CellularAutomata_GPGPU::cudaUnBindPDO(GLuint* pbo) {
-	//cudaGLUnregisterBufferObject(*pbo);
+void CellularAutomata_GPGPU::cudaUnBindPDO(GLuint pbo) {
+	//cudaGLUnregisterBufferObject(pbo);
 
+	cudaGraphicsUnregisterResource(positionsVBO_CUDA);
+	
+	errorCheck();
 }
 
-void CellularAutomata_GPGPU::runCuda(GLuint* pbo) {
+void CellularAutomata_GPGPU::runCuda(GLuint pbo) {
 
-	uchar4 *dev_ptr = NULL;
+	GLfloat *dev_ptr = NULL; 
+	size_t numBytes;
 
-	//cudaGLMapBufferObject((void**)&dev_ptr,*pbo);
+	cudaGraphicsMapResources(1,&positionsVBO_CUDA,0);
+	errorCheck();
 
-	//launch_kernalPDO2(dev_ptr,100,100);
+	//cudaGLMapBufferObject((void**)&dev_ptr,pbo);
+	cudaGraphicsResourceGetMappedPointer((void**)&dev_ptr,&numBytes,positionsVBO_CUDA);
+	errorCheck();
 
-//	cudaGLUnmapBufferObject(*pbo);
+	launch_kernalPDO2(dev_ptr,100,100);
+	errorCheck();
 
+	//cudaGLUnmapBufferObject(pbo);
+	cudaGraphicsUnmapResources(1,&positionsVBO_CUDA,0);
+	errorCheck();
 }
 
-extern "C" void CellularAutomata_GPGPU::launch_kernalPDO2(uchar4* pos,unsigned int w,unsigned int h) {
+
+//Todo, move this somewhere useful
+const char* CellularAutomata_GPGPU::errorCheck() {
+	cudaError_t err = cudaGetLastError();
+	if (err != cudaSuccess) {
+		fprintf(stderr, "C error : %s",err);
+		return cudaGetErrorString(err);
+	}
+	return  NULL;
+}
+
+void CellularAutomata_GPGPU::launch_kernalPDO2(GLfloat* pos,unsigned int w,unsigned int h) {
+
+	dim3 block(6,4,1);
+	dim3 grid(1,1,1);
+
+	size_t size = sizeof(GLfloat) * 24;
+
+	kernalBufferObjectTest<<<grid,block>>>(pos,w,h);
+
+	cudaThreadSynchronize();
+
+	errorCheck();
+}
 
 
+extern "C" __global__ void kernalBufferObjectTest(GLfloat* pos,unsigned int w,unsigned int h) {
+
+	int index = threadIdx.y * blockDim.x + threadIdx.x;
+
+	if(index < 24) {
+		pos[index] = pos[index] + 0.1;
+	}
 }

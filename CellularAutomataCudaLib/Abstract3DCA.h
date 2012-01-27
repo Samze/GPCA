@@ -7,14 +7,8 @@ class Abstract3DCA : public AbstractCellularAutomata
 {
 public:
 	DLLExport Abstract3DCA(void);
-	DLLExport ~Abstract3DCA(void);
-	virtual void test() = 0;
-
-	int m_states;
-
-	int noBits;
-	int maxBits;
-
+	DLLExport virtual ~Abstract3DCA(void); //Force use of derived constructor 
+	
     int* surviveNo;
     int  surviveSize;
 
@@ -25,11 +19,9 @@ public:
 
 	int neighbourhoodType;
 	//Always better to use constants than defines (effective C++)
-	static const int THREEDMOORE = 0;
+	static const int MOORE_3D = 26;
+	static const int VON_NEUMANN_3D = 6;
 	
-	DLLExport void setStates(int);
-	DLLExport int getNoStates() { return m_states;};
-
 	__device__ __host__ void setSurviveNo(int* list, int size) {
 		surviveNo = list;
 		surviveSize = size;
@@ -40,22 +32,22 @@ public:
 		bornSize = size;
 	}
 	
-	__device__ __host__ int getNeighbourhood(unsigned int* g_data, int x, int y, int z, int xDIM, int neighbourhood) {
+	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int z, int xDIM) {
 
-		switch(neighbourhood) {
-		case THREEDMOORE:
-			return get3dMooresNeighbourhood(g_data,x,y,z,xDIM);
+		switch(neighbourhoodType) {
+		case MOORE_3D:
+			get3dMooresNeighbourhood(neighbourStates, g_data,x,y,z,xDIM);
+			break;
+		case VON_NEUMANN_3D:
+			get3dVonNeumannNeighbourhood(neighbourStates, g_data,x,y,z,xDIM);
+			break;
 		default:
-			return 0;
+			break;
 		}
 	}
 
 	//probably a much better way to figure out the moores neighbourhood
-	__device__ __host__ int get3dMooresNeighbourhood(unsigned int* g_data, int x, int y, int z, int xDIM) {
-
-		//get neighbours for cell x,y
-		int numlivecells = 0;
-
+	__device__ __host__ void get3dMooresNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int z, int xDIM) {
 		int zDIM = xDIM * xDIM;
 
 		//bool xBounds = (x + (xDIM - 1)/xDIM) < xDIM;
@@ -66,145 +58,156 @@ public:
 
 		// [-1,-1,-1]
 		if (x != 0 && y != 0 && z != 0)
-			if ((g_data[x - xDIM + y - 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[0] = g_data[x - xDIM + y - 1 + z - zDIM];
 
 		// [-1,-1,0]
 		if (x != 0 && y != 0)
-			if ((g_data[x - xDIM + y - 1 + z] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[1] = g_data[x - xDIM + y - 1 + z];
 
 		// [-1,-1,1]
 		if (x != 0 && y != 0 && zBounds)
-			if ((g_data[x - xDIM + y - 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[2] = g_data[x - xDIM + y - 1 + z + zDIM ];
 
 
 		// [-1,0,-1]
 		if (x != 0 && z != 0)
-			if ((g_data[x - xDIM + y + z - zDIM] & maxBits)  == 1)
-				++numlivecells;	
+			neighbourStates[3] = g_data[x - xDIM + y + z - zDIM];
 
 		// [-1,0,0]
 		if (x != 0)
-			if ((g_data[x - xDIM + y  + z] & maxBits)  == 1)
-				++numlivecells;	
-
+			neighbourStates[4] = g_data[x - xDIM + y  + z];
+				
 		// [-1,0,1]
 		if (x != 0  && zBounds)
-			if ((g_data[x - xDIM + y + z + zDIM ] & maxBits)  == 1)
-				++numlivecells;	
+			neighbourStates[5] = g_data[x - xDIM + y + z + zDIM ];
 		
 		// [-1,1,-1]
 		if (x != 0 && y != xDIM -1 && z != 0 )
-			if ((g_data[x - xDIM + y + 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[6] = g_data[x - xDIM + y + 1 + z - zDIM];
+				
 		// [-1,1,0]
 		if (x != 0 && y != xDIM -1 )
-			if ((g_data[x - xDIM + y + 1  + z] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[7] = g_data[x - xDIM + y + 1  + z];
 
-		// [-1,1,1]
+		// [-1,1,1
 		if (x != 0 && y != xDIM -1 && zBounds)
-			if ((g_data[x - xDIM + y + 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[8] = g_data[x - xDIM + y + 1 + z + zDIM ];
+				
 		//x = 0
 
 		// [0,-1,-1]
 		if ( y != 0 && z != 0)
-			if ((g_data[x + y - 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[9] = g_data[x + y - 1 + z - zDIM];
 
 		// [0,-1,0]
 		if ( y != 0)
-			if ((g_data[x + y - 1  + z] & maxBits) == 1)
-				++numlivecells;	
+			neighbourStates[10] = g_data[x + y - 1  + z];
 
 		// [0,-1,1]
 		if ( y != 0  && zBounds)
-			if ((g_data[x + y - 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-		
+			neighbourStates[11] = g_data[x + y - 1 + z + zDIM];
+					
 		// [0,0,-1]
 		if (z != 0)
-			if ((g_data[x + y + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-	
+			neighbourStates[12] = g_data[x + y + z - zDIM];
+					
 		//0,0,0
 
 		// [0,0,1]
 		if (zBounds)
-			if ((g_data[x + y + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[13] = g_data[x + y + z + zDIM ];
+				
 		// [0,1,-1]
 		if (y != xDIM -1 && z != 0 )
-			if ((g_data[x + y + 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[14] = g_data[x + y + 1 + z - zDIM];
+				
 		// [0,1,0]
 		if (y != xDIM -1 )
-			if ((g_data[x + y + 1  + z] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[15] = g_data[x + y + 1  + z];
+			
 		// [0,1,1]
 		if (y != xDIM -1 && zBounds )
-			if ((g_data[x + y + 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
-
-
+			neighbourStates[16] = g_data[x + y + 1 + z + zDIM ];
+				
 		//x = 1
 
 		// [1,-1,-1]
 		if (xBounds && y != 0 && z != 0)
-			if ((g_data[x + xDIM + y - 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[17] = g_data[x + xDIM + y - 1 + z - zDIM];
+				
 		// [1,-1,0]
 		if (xBounds && y != 0 )
-			if ((g_data[x + xDIM + y - 1  + z] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[18] = g_data[x + xDIM + y - 1  + z];
+				
 		// [1,-1,1]
 		if (xBounds && y != 0  && zBounds)
-			if ((g_data[x + xDIM + y - 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[19] = g_data[x + xDIM + y - 1 + z + zDIM ];
+				
 		// [1,0,-1]
 		if (xBounds && z != 0)
-			if ((g_data[x + xDIM + y + z - zDIM] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[20] = g_data[x + xDIM + y + z - zDIM];
+				
 		// [1,0,0]
 		if (xBounds)
-			if ((g_data[x + xDIM + y  + z] & maxBits) == 1)
-				++numlivecells;
-
+			neighbourStates[21] = g_data[x + xDIM + y  + z];
+				
 		// [1,0,1]
 		if (xBounds  && zBounds)
-			if ((g_data[x + xDIM + y + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[22] = g_data[x + xDIM + y + z + zDIM ];
 
 
 		// [1,1,-1]
 		if (xBounds && y != xDIM - 1 && z != 0 )
-			if ((g_data[x + xDIM + y + 1 + z - zDIM] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[23] = g_data[x + xDIM + y + 1 + z - zDIM];
 
 		// [1,1,0]
 		if (xBounds && y != xDIM - 1 )
-			if ((g_data[x + xDIM + y + 1  + z] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[24] = g_data[x + xDIM + y + 1  + z];
 
 		// [1,1,1]
 		if (xBounds && y != xDIM - 1 && zBounds )
-			if ((g_data[x + xDIM + y + 1 + z + zDIM ] & maxBits) == 1)
-				++numlivecells;
+			neighbourStates[25] = g_data[x + xDIM + y + 1 + z + zDIM ];
+	}
 
-		return numlivecells;
+
+		//probably a much better way to figure out the moores neighbourhood
+	__device__ __host__ void get3dVonNeumannNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int z, int xDIM) {
+		int zDIM = xDIM * xDIM;
+
+		//bool xBounds = (x + (xDIM - 1)/xDIM) < xDIM;
+		//bool zBounds = (z + (zDIM - 1)/zDIM) < zDIM;
+
+		bool xBounds = (x / xDIM) < xDIM -1;
+		bool zBounds = (z / zDIM) < xDIM -1;
+
+		//x = -1
+
+		// [-1,0,0]
+		if (x != 0)
+			neighbourStates[0] = g_data[x - xDIM + y  + z];
+				
+		//x = 0
+		// [0,-1,0]
+		if ( y != 0)
+			neighbourStates[1] = g_data[x + y - 1  + z];
+
+		// [0,0,-1]
+		if (z != 0)
+			neighbourStates[2] = g_data[x + y + z - zDIM];
+		
+		// [0,0,1]
+		if (zBounds)
+			neighbourStates[3] = g_data[x + y + z + zDIM ];
+				
+		// [0,1,0]
+		if (y != xDIM -1 )
+			neighbourStates[4] = g_data[x + y + 1  + z];
+				
+		//x = 1
+		// [1,0,0]
+		if (xBounds)
+			neighbourStates[5] = g_data[x + xDIM + y  + z];
+
 	}
 
 };

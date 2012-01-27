@@ -12,6 +12,7 @@
 #include <cutil_gl_inline.h>
 #include <cuda_gl_interop.h>
 
+
 #define DLLExport __declspec(dllexport)
 
 class CellularAutomata
@@ -42,10 +43,9 @@ public:
 
 	
 	DLLExport virtual unsigned int initCudaForGL() = 0;
-	DLLExport virtual void cudaBindPDO(GLuint* pbo) = 0;
-	DLLExport virtual void cudaUnBindPDO(GLuint* pbo) = 0;
-	DLLExport virtual void runCuda(GLuint* pbo) = 0;
-	DLLExport virtual void launch_kernalPDO2(uchar4* pos,unsigned int w,unsigned int h) = 0;
+	DLLExport virtual void cudaBindPDO(GLuint pbo) = 0;
+	DLLExport virtual void cudaUnBindPDO(GLuint pbo) = 0;
+	DLLExport virtual void runCuda(GLuint pbo) = 0;
 
 protected :
 	const unsigned DIM; //Should make const?

@@ -1,9 +1,10 @@
+
+#include "CellularAutomata_kernal.cu"
+
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include <vector_types.h>
-#include "CellularAutomata_kernal.cu"
-
 
 template<typename CAFunction>
 extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
@@ -68,7 +69,6 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 	cudaMemcpy(dev_func, func, sizeof(CAFunction),
 		cudaMemcpyHostToDevice);
 
-
 	kernal<<<blocks,threads>>>(dev_pFlatGrid, dev_DIM, dev_func);
 
 	//Copy back to host
@@ -93,10 +93,9 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 	//fix up states - normalize
 	for (int i = 0; i < DIM; ++i) {
 		for (int j = 0; j < DIM; ++j) {
-				pFlatGrid[i * DIM +j] = pFlatGrid[i * DIM +j] >> func->noBits;
+				pFlatGrid[i * DIM +j] = pFlatGrid[i * DIM +j] >> func->getNoBits();
 		}
 	}
-
 
 	//Free memory on Device
 	cudaFree(dev_pFlatGrid);
@@ -217,7 +216,7 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 
 	for (int i = 0; i < DIM * DIM; ++i) {
 		for (int j = 0; j < DIM; ++j) {
-				pFlatGrid[i * DIM +j] = pFlatGrid[i * DIM +j] >> func->noBits;
+				pFlatGrid[i * DIM +j] = pFlatGrid[i * DIM +j] >> func->getNoBits();
 		}
 	}
 
@@ -232,5 +231,3 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 
 	return elapsedTime;
 }
-
-

@@ -10,7 +10,6 @@ class Generations3D : public Abstract3DCA {
 public :
 	DLLExport __device__ __host__ Generations3D() {}
 	DLLExport __device__ __host__ ~Generations3D() {}
-	virtual void test() {}
 
 	__device__  int applyFunction(unsigned int* g_data, int x, int y, int z, int xDIM) { 
 		
@@ -22,11 +21,28 @@ public :
 
 		//We want know about neighbours even if we're not using them to set the next state, this is 
 		//so they can not be rendered by the viewer. To speed up the processing, move this to the else
-		int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM, neighbourhoodType);
+
+		int neighbourhoodStates[26];
+	
+		//set as -1 by default.
+		for(int i = 0; i < 26; i++) {
+			neighbourhoodStates[i] = -1; 
+		}
+
+		//Populate neighbours states.
+		getNeighbourhood(neighbourhoodStates,g_data, xAltered, y, zAltered, xDIM);
+
+		//we only care about neighbours when we know we're in a ready state
+		//int liveCells =  getNeighbourhood(g_data, x * xDIM, y, xDIM, neighbourhoodType);
+		int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,maxBits,neighbourhoodType);
+
+		//int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM);
+
+		//This is for culling of cubes surrounded on all sides.
 		neighbourCount[xAltered + y + zAltered] = liveCells;
 
 		if (state > 1) {
-			if(state >= m_states - 1) {
+			if(state >= noStates - 1) {
 				//reset this state next go
 				return state;
 			}
@@ -46,7 +62,7 @@ public :
 			}
 			
 			if (state == 1) {
-				if (state < m_states - 1) { //This guards against 2 state generations
+				if (state < noStates - 1) { //This guards against 2 state generations
 					return state | (2 << noBits);
 				}
 			}

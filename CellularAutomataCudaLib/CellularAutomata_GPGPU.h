@@ -11,7 +11,9 @@
 #define DLLExport __declspec(dllexport)
 
 //forward declaration.
+extern "C" __global__ void kernalBufferObjectTest(GLfloat* pos,unsigned int w,unsigned int h);
 //template<typename CAFunction> extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func);
+//template<typename CAFunction> extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func);
 
 class CellularAutomata_GPGPU : public CellularAutomata
 {
@@ -26,12 +28,13 @@ public:
 	GLuint textureID;
 
 	
-	unsigned int initCudaForGL();
-	void cudaBindPDO(GLuint* pbo);
-	void cudaUnBindPDO(GLuint* pbo);
-	void runCuda(GLuint* pbo);
-	void launch_kernalPDO2(uchar4* pos,unsigned int w,unsigned int h);
+	DLLExport unsigned int initCudaForGL();
+	DLLExport void cudaBindPDO(GLuint pbo);
+	DLLExport void cudaUnBindPDO(GLuint pbo);
+	DLLExport void runCuda(GLuint pbo);
+	void launch_kernalPDO2(GLfloat* pos,unsigned int w,unsigned int h);
+	
+	const char* errorCheck();
+	struct cudaGraphicsResource* positionsVBO_CUDA;
 };
-
 #endif
-
