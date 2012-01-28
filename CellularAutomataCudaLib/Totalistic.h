@@ -14,35 +14,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-	#ifndef ABSTRACT_CELLULAR_AUTOMATA_H
-#define ABSTRACT_CELLULAR_AUTOMATA_H
+
+#pragma once
 
 #include "device_launch_parameters.h"
 
-#define DLLExport __declspec(dllexport)
-
-class AbstractCellularAutomata
-{
+class Totalistic {
 
 public:
-	DLLExport AbstractCellularAutomata(void) {}
-	DLLExport virtual ~AbstractCellularAutomata(void) {}
-	
-	DLLExport __host__ void setStates(unsigned int states);
-	DLLExport __host__ int getNoStates() { return noStates;}
-	__host__ int getNoBits() { return noBits;}
+	__device__  __host__ Totalistic(void) { }
+	__device__  __host__ ~Totalistic(void) { }
 
-protected:
-	int noStates;
-	int noBits;
-	int maxBits;
+	__device__ __host__  static int getLiveCellCount(int* neighbourhoodStates, int maxBits, int neighbourType) {
 
-	//This next line should be here to provide 'proper' virtual inheritence, sadly it is only supported on CUDA sm_2x architecture.
-	//__device__ __host__ int applyFunction(int*,int,int,int) {
-	//	return 3;
-	//}
+		int numLiveCells = 0;
 
+		for(int i = 0; i < neighbourType; ++i) {
+			if(neighbourhoodStates[i] != -1 && (neighbourhoodStates[i] & maxBits) == 1)
+				++numLiveCells;
+		}
+
+		return numLiveCells;
+	}
 };
 
-
-#endif
