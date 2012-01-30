@@ -186,6 +186,7 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	func->surviveNo = dev_survive;
 	func->bornNo = dev_born;
 	func->neighbourCount = dev_neighCount;
+	func->pFlatGrid = dev_pFlatGrid;
 	
 	
 	
@@ -216,6 +217,7 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	func->surviveNo = tempSurv;
 	func->bornNo = tempBorn;
 	func->neighbourCount = tempNeigh;
+	func->pFlatGrid = NULL;
 
 	//STOP : processing done
 	cudaEventRecord(stop,0);

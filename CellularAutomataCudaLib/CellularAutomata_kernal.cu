@@ -48,7 +48,7 @@ __global__ void kernal3DTest(unsigned int* g_data, int* DIM, CAFunction* func) {
 	
 	//__syncthreads();
 
-	g_data[(z * *DIM * *DIM) + (x * *DIM) + y] = func->applyFunction(g_data,x,y,z,*DIM);
+	g_data[(z * *DIM * *DIM) + (x * *DIM) + y] = func->applyFunction(func->pFlatGrid,x,y,z,*DIM);
 	
 }
 

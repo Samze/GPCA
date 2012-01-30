@@ -17,10 +17,10 @@
 
 #include "CellularAutomata_GPGPU.h"
 
-CellularAutomata_GPGPU::CellularAutomata_GPGPU(DimensionType type, int dim, int seed) : CellularAutomata(type, dim, seed){ }
+CellularAutomata_GPGPU::CellularAutomata_GPGPU(int dim, int seed) : CellularAutomata(dim, seed){ }
 
 
-CellularAutomata_GPGPU::CellularAutomata_GPGPU(DimensionType type, unsigned int* pFlatGrid, int seed) : CellularAutomata(type, pFlatGrid, seed){ }
+CellularAutomata_GPGPU::CellularAutomata_GPGPU(unsigned int* pFlatGrid, int seed) : CellularAutomata(pFlatGrid, seed){ }
 
 CellularAutomata_GPGPU::~CellularAutomata_GPGPU() { 
 

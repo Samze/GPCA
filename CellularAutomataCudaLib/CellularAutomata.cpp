@@ -27,8 +27,7 @@ CellularAutomata::~CellularAutomata() {
 
 
 }
-CellularAutomata::CellularAutomata(DimensionType type, int dimension, int range) : dimType(type),
-DIM(dimension)
+CellularAutomata::CellularAutomata(int dimension, int range) : DIM(dimension)
 {
 	//initialize array based on dim with random values
 	pFlatGrid = new unsigned int[DIM * DIM];
@@ -82,7 +81,7 @@ DIM(dimension)
 	}
 }
 
-CellularAutomata::CellularAutomata(DimensionType type, unsigned int *pFlatGrid, int dimension) : dimType(type), DIM(dimension), pFlatGrid(pFlatGrid)  {
+CellularAutomata::CellularAutomata(unsigned int *pFlatGrid, int dimension) : DIM(dimension), pFlatGrid(pFlatGrid)  {
 
 }
 
