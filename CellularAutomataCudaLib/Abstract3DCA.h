@@ -18,45 +18,54 @@
 #pragma once
 
 #include "device_launch_parameters.h"
-#include "AbstractCellularAutomata.h"
+#include "AbstractLattice.h"
 
-class Abstract3DCA : public AbstractCellularAutomata
+class Abstract3DCA : public AbstractLattice
 {
 public:
 	DLLExport Abstract3DCA(void);
+	DLLExport Abstract3DCA(int,int); //random data
+	DLLExport Abstract3DCA(unsigned int*, int);
+
 	DLLExport virtual ~Abstract3DCA(void); //Force use of derived constructor 
 	
-    int* surviveNo;
-    int  surviveSize;
-
-	int* bornNo;
-    int bornSize;
+	__host__ virtual size_t size() const { return sizeof(this); }
 	
 	unsigned int *neighbourCount;
 
-	int neighbourhoodType;
 	//Always better to use constants than defines (effective C++)
 	static const int MOORE_3D = 26;
 	static const int VON_NEUMANN_3D = 6;
-	
-	__device__ __host__ void setSurviveNo(int* list, int size) {
-		surviveNo = list;
-		surviveSize = size;
-	}
+		
+	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int gLocation){
 
-	__device__ __host__ void setBornNo(int* list, int size) {
-		bornNo = list;
-		bornSize = size;
-	}
-	
-	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int z, int xDIM) {
+		int z = gLocation / (DIM * DIM);
+		int x = (gLocation - (z * DIM * DIM)) / DIM;
+		int y = gLocation % DIM;
+
+		int zAltered = z * DIM * DIM;
+		int xAltered = x * DIM;
 
 		switch(neighbourhoodType) {
 		case MOORE_3D:
-			get3dMooresNeighbourhood(neighbourStates, g_data,x,y,z,xDIM);
+			get3dMooresNeighbourhood(neighbourStates,g_data,xAltered,y,zAltered,DIM);
 			break;
 		case VON_NEUMANN_3D:
-			get3dVonNeumannNeighbourhood(neighbourStates, g_data,x,y,z,xDIM);
+			get3dVonNeumannNeighbourhood(neighbourStates,g_data,xAltered,y,zAltered,DIM);
+			break;
+		default:
+			break;
+		}
+	}
+
+__device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, int z,unsigned int* g_data, int gLocation){
+
+		switch(neighbourhoodType) {
+		case MOORE_3D:
+			get3dMooresNeighbourhood(neighbourStates,g_data,x,y,z,DIM);
+			break;
+		case VON_NEUMANN_3D:
+			get3dVonNeumannNeighbourhood(neighbourStates,g_data,x,y,z,DIM);
 			break;
 		default:
 			break;

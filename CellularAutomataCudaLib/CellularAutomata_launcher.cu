@@ -21,18 +21,22 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include <vector_types.h>
+#include "Abstract2DCA.h"
+#include "Abstract3DCA.h"
 
 template<typename CAFunction>
-extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
+extern float CUDATimeStep(CAFunction *func) {
 
 	unsigned int *dev_pFlatGrid; //Pointers to device allocated memory
-	int *dev_DIM;
 	int *dev_born; //to bornNo
 	int *dev_survive; //to surviveNo
 	CAFunction *dev_func;
+	Abstract2DCA *dev_lattice;
 
 	int* tempBorn;
 	int* tempSurv;
+	Abstract2DCA *tempLattice;
+	unsigned int* tempGrid;
 
 	cudaEvent_t start,stop; //Events for timings
 
@@ -42,15 +46,19 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 
 	cudaEventRecord(start,0);
 
+	int DIM = func->lattice->DIM;
+
 	size_t noCells = DIM * DIM * sizeof(unsigned int);
+
 	//Might need to flatten the 2d array ormaybe try "int2" type
 	
 	//TODO fix this name
 	size_t size = sizeof(CAFunction);
+	size_t sizeLattice = sizeof(Abstract2DCA);//func->lattice2->size();
 	//Allocate suitable size memory on device
 	cudaMalloc((void**) &dev_pFlatGrid, noCells);
-	cudaMalloc((void**) &dev_DIM, sizeof(int));
-	cudaMalloc((void**) &dev_func, sizeof(CAFunction));
+	cudaMalloc((void**) &dev_func, size);
+	cudaMalloc((void**) &dev_lattice, sizeLattice);
 
 	cudaMalloc((void**) &dev_born, sizeof(int) * func->bornSize);
 	cudaMalloc((void**) &dev_survive, sizeof(int) * func->surviveSize);
@@ -66,34 +74,42 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 		cudaMemcpyHostToDevice);
 	cudaMemcpy(dev_survive, func->surviveNo, sizeof(int) * func->surviveSize,
 		cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_pFlatGrid, func->lattice->pFlatGrid, noCells,
+		cudaMemcpyHostToDevice);
+	
+	tempGrid = func->lattice->pFlatGrid;
+
+	func->lattice->pFlatGrid = dev_pFlatGrid;
+
+	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
+		cudaMemcpyHostToDevice);
 
 	//We want to temporarily hold our pointers so we can reassign them after the object copy...
 	tempBorn = func->bornNo;
 	tempSurv = func->surviveNo;
+	tempLattice = func->lattice;
 
 	//reassign our pointers so we know where we put our dynamic arrays
 	func->surviveNo = dev_survive;
 	func->bornNo = dev_born;
-	
-	
+	func->lattice = dev_lattice;
+
 	
 	//Copy our memory from Host to Device
-	cudaMemcpy(dev_pFlatGrid, pFlatGrid, noCells,
-		cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_DIM, &DIM, sizeof(int),
-		cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_func, func, sizeof(CAFunction),
+	cudaMemcpy(dev_func, func,size,
 		cudaMemcpyHostToDevice);
 
-	kernal<<<blocks,threads>>>(dev_pFlatGrid, dev_DIM, dev_func);
+	kernal<<<blocks,threads>>>(dev_func);
 
 	//Copy back to host
-	cudaMemcpy(pFlatGrid, dev_pFlatGrid, noCells,
+	cudaMemcpy(tempGrid, dev_pFlatGrid, noCells,
 		cudaMemcpyDeviceToHost);
 
 	//Reassign our dynamic array pointers
 	func->surviveNo = tempSurv;
 	func->bornNo = tempBorn;
+	func->lattice = tempLattice;
+	func->lattice->pFlatGrid = tempGrid;
 
 	//STOP : processing done
 	cudaEventRecord(stop,0);
@@ -109,13 +125,12 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 	//fix up states - normalize
 	for (int i = 0; i < DIM; ++i) {
 		for (int j = 0; j < DIM; ++j) {
-				pFlatGrid[i * DIM +j] = pFlatGrid[i * DIM +j] >> func->getNoBits();
+				func->lattice->pFlatGrid[i * DIM +j] = func->lattice->pFlatGrid[i * DIM +j] >> func->lattice->getNoBits();
 		}
 	}
 
 	//Free memory on Device
 	cudaFree(dev_pFlatGrid);
-	cudaFree(dev_DIM);
 	cudaFree(dev_born);
 	cudaFree(dev_survive);
 	cudaFree(dev_func);
@@ -124,18 +139,20 @@ extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
 }
 
 template<typename CAFunction>
-extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) {
+extern float CUDATimeStep3D(CAFunction *func) {
 
 	unsigned int *dev_pFlatGrid; //Pointers to device allocated memory
-	int *dev_DIM;
 	int *dev_born; //to bornNo
 	int *dev_survive; //to surviveNo
 	unsigned int* dev_neighCount;
 	CAFunction *dev_func;
+	Abstract3DCA *dev_lattice;
 
 	int* tempBorn;
 	int* tempSurv;
 	unsigned int* tempNeigh;
+	Abstract3DCA *tempLattice;
+	unsigned int* tempGrid;
 
 	cudaEvent_t start,stop; //Events for timings
 
@@ -144,16 +161,23 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	cudaEventCreate(&stop);
 
 	cudaEventRecord(start,0);
+	
+	int DIM = func->lattice->DIM;
 
 	size_t noCells = DIM * DIM * DIM * sizeof(unsigned int);
 	//Might need to flatten the 2d array ormaybe try "int2" type
 	
 	//TODO fix this name
 	size_t size = sizeof(CAFunction);
+
+	//TODO Add this 
+	//size_t sizeLattice = func->lattice->size();
+	size_t sizeLattice = sizeof(Abstract3DCA);
+
 	//Allocate suitable size memory on device
 	cudaMalloc((void**) &dev_pFlatGrid, noCells);
-	cudaMalloc((void**) &dev_DIM, sizeof(int));
-	cudaMalloc((void**) &dev_func, sizeof(CAFunction));
+	cudaMalloc((void**) &dev_func, size);
+	cudaMalloc((void**) &dev_lattice, sizeLattice);
 
 	cudaMalloc((void**) &dev_born, sizeof(int) * func->bornSize);
 	cudaMalloc((void**) &dev_survive, sizeof(int) * func->surviveSize);
@@ -173,38 +197,36 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 		cudaMemcpyHostToDevice);
 	cudaMemcpy(dev_survive, func->surviveNo, sizeof(int) * func->surviveSize,
 		cudaMemcpyHostToDevice);
+	cudaMemcpy(dev_pFlatGrid, func->lattice->pFlatGrid, noCells,
+		cudaMemcpyHostToDevice);
+	
+	tempGrid = func->lattice->pFlatGrid;
+	tempNeigh = func->lattice->neighbourCount;
 
-	cudaMemcpy(dev_neighCount, func->neighbourCount, noCells,
+	func->lattice->pFlatGrid = dev_pFlatGrid;
+	func->lattice->neighbourCount = dev_neighCount;
+
+	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
 		cudaMemcpyHostToDevice);
 
 	//We want to temporarily hold our pointers so we can reassign them after the object copy...
 	tempBorn = func->bornNo;
 	tempSurv = func->surviveNo;
-	tempNeigh = func->neighbourCount;
+	tempLattice = func->lattice;
 
 	//reassign our pointers so we know where we put our dynamic arrays
 	func->surviveNo = dev_survive;
 	func->bornNo = dev_born;
-	func->neighbourCount = dev_neighCount;
-	func->pFlatGrid = dev_pFlatGrid;
-	
-	
+	func->lattice = dev_lattice;
 	
 	//Copy our memory from Host to Device
-	cudaMemcpy(dev_pFlatGrid, pFlatGrid, noCells,
-		cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_DIM, &DIM, sizeof(int),
-		cudaMemcpyHostToDevice);
-	cudaMemcpy(dev_func, func, sizeof(CAFunction),
+	cudaMemcpy(dev_func, func,size,
 		cudaMemcpyHostToDevice);
 
-	//TODO memory leak?
-	//delete[] pFlatGrid;
-
-	kernal3DTest<<<blocks,threads>>>(dev_pFlatGrid, dev_DIM, dev_func);
+	kernal3DTest<<<blocks,threads>>>(dev_func);
 
 	//Copy back to host
-	cudaMemcpy(pFlatGrid, dev_pFlatGrid, noCells,
+	cudaMemcpy(tempGrid, dev_pFlatGrid, noCells,
 		cudaMemcpyDeviceToHost);
 
 	//Because of our func currently holding a device pointer, we need to use a
@@ -216,8 +238,10 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 	//Reassign our dynamic array pointers
 	func->surviveNo = tempSurv;
 	func->bornNo = tempBorn;
-	func->neighbourCount = tempNeigh;
-	func->pFlatGrid = NULL;
+
+	func->lattice = tempLattice;
+	func->lattice->pFlatGrid = tempGrid;
+	func->lattice->neighbourCount = tempNeigh;
 
 	//STOP : processing done
 	cudaEventRecord(stop,0);
@@ -234,14 +258,13 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 
 	for (int i = 0; i < DIM * DIM; ++i) {
 		for (int j = 0; j < DIM; ++j) {
-				pFlatGrid[i * DIM +j] = pFlatGrid[i * DIM +j] >> func->getNoBits();
+				func->lattice->pFlatGrid[i * DIM +j] = func->lattice->pFlatGrid[i * DIM +j] >> func->lattice->getNoBits();
 		}
 	}
 
 
 	//Free memory on Device
 	cudaFree(dev_pFlatGrid);
-	cudaFree(dev_DIM);
 	cudaFree(dev_born);
 	cudaFree(dev_survive);
 	cudaFree(dev_func);
@@ -249,3 +272,12 @@ extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func) 
 
 	return elapsedTime;
 }
+
+//TODO add support for this.
+//const char* errorCheck() {
+//	cudaError_t err = cudaGetLastError();
+//	if (err != cudaSuccess) {
+//		return cudaGetErrorString(err);
+//	}
+//	return  NULL;
+//}

@@ -19,21 +19,44 @@
 #define GENERATIONS3D_H
 
 #include "device_launch_parameters.h"
+#include "AbstractCellularAutomata.h"
 #include "Abstract3DCA.h"
 #include "cuda.h"
 
-class Generations3D : public Abstract3DCA {
+class Generations3D : public AbstractCellularAutomata {
 
 public :
 	DLLExport __device__ __host__ Generations3D() {}
 	DLLExport __device__ __host__ ~Generations3D() {}
+	
+     int* surviveNo;
+    int  surviveSize;
+	
+	__device__ __host__ void setSurviveNo(int* list, int size) {
+		surviveNo = list;
+		surviveSize = size;
+	}
+
+	__device__ __host__ void setBornNo(int* list, int size) {
+		bornNo = list;
+		bornSize = size;
+	}
+	
+	int* bornNo;
+    int bornSize;
+
+	Abstract3DCA *lattice;
+	
+	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
 	__device__  int applyFunction(unsigned int* g_data, int x, int y, int z, int xDIM) { 
 		
 		int xAltered = x * xDIM;
 		int zAltered = z * xDIM * xDIM;
 
-		int state = g_data[zAltered + xAltered + y];
+		int gridLoc = xAltered + zAltered + y;
+
+		int state = g_data[gridLoc];
 		int temp = 0;
 
 		//We want know about neighbours even if we're not using them to set the next state, this is 
@@ -47,16 +70,17 @@ public :
 		}
 
 		//Populate neighbours states.
-		getNeighbourhood(neighbourhoodStates,g_data, xAltered, y, zAltered, xDIM);
+		//lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,zAltered,g_data,gridLoc);
+		lattice->getNeighbourhood(neighbourhoodStates,g_data,gridLoc);
 
 		//we only care about neighbours when we know we're in a ready state
 		//int liveCells =  getNeighbourhood(g_data, x * xDIM, y, xDIM, neighbourhoodType);
-		int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,maxBits,neighbourhoodType);
+		int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 
 		//int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM);
 
 		//This is for culling of cubes surrounded on all sides.
-		neighbourCount[xAltered + y + zAltered] = liveCells;
+		lattice->neighbourCount[xAltered + y + zAltered] = liveCells;
 
 		if (state > 1) {
 			if(state >= noStates - 1) {
@@ -65,22 +89,22 @@ public :
 			}
 			else {
 				temp = state + 1;
-				return state | ((temp) << noBits);
+				return setNewState(lattice,temp,state);
 			}
 		}
 		else {
 
 			for (int i = 0; i < surviveSize; i++) {
-				if (state == 1 && liveCells == surviveNo[i]) return state | (1 << noBits);
+				if (state == 1 && liveCells == surviveNo[i]) return setNewState(lattice,1,state);
 			}
 			
 			for (int i = 0; i < bornSize; ++i) {		
-				if (state == 0 && liveCells == bornNo[i]) return state | (1 << noBits);
+				if (state == 0 && liveCells == bornNo[i]) return setNewState(lattice,1,state);
 			}
 			
 			if (state == 1) {
 				if (state < noStates - 1) { //This guards against 2 state generations
-					return state | (2 << noBits);
+					return setNewState(lattice,2,state);
 				}
 			}
 

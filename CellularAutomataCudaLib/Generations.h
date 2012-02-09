@@ -19,19 +19,41 @@
 #define GENERATIONS_H
 
 #include "device_launch_parameters.h"
+#include "AbstractCellularAutomata.h"
 #include "Abstract2DCA.h"
 #include "cuda.h"
 #include "Totalistic.h"
 
-class Generations : public Abstract2DCA{
+class Generations : public AbstractCellularAutomata{
 
 public :
 	DLLExport __device__ __host__ Generations() {}
 	DLLExport __device__ __host__ ~Generations() {}
 
+    int* surviveNo;
+    int  surviveSize;
+	
+	__device__ __host__ void setSurviveNo(int* list, int size) {
+		surviveNo = list;
+		surviveSize = size;
+	}
+
+	__device__ __host__ void setBornNo(int* list, int size) {
+		bornNo = list;
+		bornSize = size;
+	}
+	
+	int* bornNo;
+    int bornSize;
+
+	Abstract2DCA *lattice;
+	
+	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
+
 	__device__  int applyFunction(unsigned int* g_data, int x, int y, int xDIM) { 
 		
-		int state = g_data[x * xDIM + y];
+		int gridLoc = x * xDIM + y;
+		int state = g_data[gridLoc];
 		int temp = 0;
 
 		//generations specialism
@@ -42,7 +64,7 @@ public :
 			}
 			else {
 				temp = state + 1;
-				return state | ((temp) << noBits);
+				return setNewState(lattice,temp,state);			
 			}
 		}
 		else {
@@ -56,27 +78,54 @@ public :
 			}
 
 			//Populate neighbours states.
-			getNeighbourhood(neighbourhoodStates,g_data,x * xDIM,y,xDIM);
+			lattice->getNeighbourhood(neighbourhoodStates,g_data,gridLoc);
 
 			//we only care about neighbours when we know we're in a ready state
-			//int liveCells =  getNeighbourhood(g_data, x * xDIM, y, xDIM, neighbourhoodType);
-			int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,maxBits,neighbourhoodType);
+			int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 	
 			for (int i = 0; i < surviveSize; i++) {
-				if (state == 1 && liveCells == surviveNo[i]) return state | (1 << noBits);
+				if (state == 1 && liveCells == surviveNo[i]) return setNewState(lattice,1,state);
 			}
 			
 			for (int i = 0; i < bornSize; ++i) {		
-				if (state == 0 && liveCells == bornNo[i]) return state | (1 << noBits);
+				if (state == 0 && liveCells == bornNo[i]) return setNewState(lattice,1,state);
 			}
 			
-			if (state == 1) return state | (2 << noBits);
+			if (state == 1) {
+				if (state < noStates - 1) { //This guards against 2 state generations
+					return setNewState(lattice,2,state);
+				}
+			}
 		}
 
 
 		return state;
 
 	}
+
+	//DLLExport virtual void setStates(unsigned int states) {
+
+	//	noStates = states;
+
+	//	//calculate how many bits are needed to hold a states
+	//	//we need to minus one to properly reflect the fact that 1 bit can hold 2 states
+	//	// 3 bits can hold 8 states etc.
+
+	//	states = states - 1;
+
+	//	lattice->noBits = 0;
+	//	while (states != 0) { 
+	//		states = states >> 1; 
+	//		++lattice->noBits;
+	//	}
+
+	//	lattice->maxBits = 1;
+
+	//	for (int i = 1; i < lattice->noBits; i++) {
+	//		lattice->maxBits = (lattice->maxBits << 1) + 1;
+	//	}
+	//}
+
 };
 
 

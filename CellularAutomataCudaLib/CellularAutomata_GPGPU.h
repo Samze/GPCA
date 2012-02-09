@@ -35,23 +35,9 @@ extern "C" __global__ void kernalBufferObjectTest(GLfloat* pos,unsigned int w,un
 class CellularAutomata_GPGPU : public CellularAutomata
 {
 public:
-	DLLExport CellularAutomata_GPGPU(int, int);
-	DLLExport CellularAutomata_GPGPU(unsigned int*, int);
+	DLLExport CellularAutomata_GPGPU();
 	DLLExport ~CellularAutomata_GPGPU();
 	
 	float nextTimeStep();
-
-	GLuint pbo;
-	GLuint textureID;
-
-	
-	DLLExport unsigned int initCudaForGL();
-	DLLExport void cudaBindPDO(GLuint pbo);
-	DLLExport void cudaUnBindPDO(GLuint pbo);
-	DLLExport void runCuda(GLuint pbo);
-	void launch_kernalPDO2(GLfloat* pos,unsigned int w,unsigned int h);
-	
-	const char* errorCheck();
-	struct cudaGraphicsResource* positionsVBO_CUDA;
 };
 #endif

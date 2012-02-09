@@ -36,30 +36,20 @@ class CellularAutomata
 {
 
 public:
-	
 
-	DLLExport CellularAutomata(int,int); //random data
-	DLLExport CellularAutomata(unsigned int*, int);
+	DLLExport CellularAutomata();
 	DLLExport ~CellularAutomata();
 	
 	DLLExport virtual float nextTimeStep() = 0;
 	
-	DLLExport unsigned int getDIM() { return DIM;};
-	DLLExport unsigned int* getGrid() { return pFlatGrid;};
+//	DLLExport unsigned int* getGrid() { return pFlatGrid;};
 
 	DLLExport AbstractCellularAutomata* getCARule() { return caRule; };
 	DLLExport void setCARule(AbstractCellularAutomata* ca);
 	DLLExport void generate3DGrid(int,int);
 
-	
-	DLLExport virtual unsigned int initCudaForGL() = 0;
-	DLLExport virtual void cudaBindPDO(GLuint pbo) = 0;
-	DLLExport virtual void cudaUnBindPDO(GLuint pbo) = 0;
-	DLLExport virtual void runCuda(GLuint pbo) = 0;
-
 protected :
-	const unsigned DIM; //Should make const?
-	unsigned int *pFlatGrid;
+	//unsigned int *pFlatGrid;
 	AbstractCellularAutomata* caRule;
 };
 

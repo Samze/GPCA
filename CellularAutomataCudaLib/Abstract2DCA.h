@@ -18,53 +18,60 @@
 #pragma once
 
 #include "device_launch_parameters.h"
-#include "AbstractCellularAutomata.h"
+#include "AbstractLattice.h"
 
 
-class Abstract2DCA : public AbstractCellularAutomata
+class Abstract2DCA : public AbstractLattice
 {
 
 public:
 	DLLExport Abstract2DCA(void);
+	DLLExport Abstract2DCA(int,int); //random data
+	DLLExport Abstract2DCA(unsigned int*, int);
+
 	DLLExport virtual ~Abstract2DCA(void); //This was virtual...????
+	
+	__host__ virtual size_t size() const { return sizeof(this); }
 
 	//Always better to use constants than defines (effective C++)
 	//Using 8 and 4 as the number of neighbours..
 	static const int MOORE = 8;
 	static const int VON_NEUMANN = 4;
 	
-	int neighbourhoodType;
 
-    int* surviveNo;
-    int  surviveSize;
+	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int gLocation){
 
-	int* bornNo;
-    int bornSize;
-
-
-	__device__ __host__ void setSurviveNo(int* list, int size) {
-		surviveNo = list;
-		surviveSize = size;
-	}
-
-	__device__ __host__ void setBornNo(int* list, int size) {
-		bornNo = list;
-		bornSize = size;
-	}
-	
-	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int xDIM) {
+		int x = gLocation / DIM;
+		int y = gLocation % DIM;
+		
+		//this looks odd after the previous lines, however when diving we lose the remainder. so xAltered != gLocation
+		int xAltered = x * DIM;
 
 		switch(neighbourhoodType) {
 		case MOORE:
-			getMooresNeighbourhood(neighbourStates,g_data,x,y,xDIM);
+			getMooresNeighbourhood(neighbourStates,g_data,xAltered,y,DIM);
 			break;
 		case VON_NEUMANN:
-			getVonNeumannNeighbourhood(neighbourStates,g_data,x,y,xDIM);
+			getVonNeumannNeighbourhood(neighbourStates,g_data,xAltered,y,DIM);
 			break;
 		default:
 			break;
 		}
 	}
+
+	//__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int xDIM) {
+
+	//	switch(neighbourhoodType) {
+	//	case MOORE:
+	//		getMooresNeighbourhood(neighbourStates,g_data,x,y,xDIM);
+	//		break;
+	//	case VON_NEUMANN:
+	//		getVonNeumannNeighbourhood(neighbourStates,g_data,x,y,xDIM);
+	//		break;
+	//	default:
+	//		break;
+	//	}
+	//}
 
 
 	//probably a much better way to figure out the moores neighbourhood, populates a max of 8 neighbours

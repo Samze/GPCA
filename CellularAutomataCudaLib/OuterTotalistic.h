@@ -19,19 +19,28 @@
 #define OUTER_TOTALISTIC_H_
 
 #include "device_launch_parameters.h"
+#include "AbstractCellularAutomata.h"
 #include "Abstract2DCA.h"
 #include "Totalistic.h"
 
-class OuterTotalistic : public Abstract2DCA {
+class OuterTotalistic : public AbstractCellularAutomata {
 
 public :
 	DLLExport __device__ __host__ OuterTotalistic() {}
 	DLLExport __device__ __host__ ~OuterTotalistic() {}
 	
+	int* surviveNo;
+    int  surviveSize;
+
+	int* bornNo;
+    int bornSize;
+	
+	Abstract2DCA *lattice;
 
 	__device__ __host__ int applyFunction(unsigned int* g_data, int x, int y, int xDIM) { 
 		
-		int state = g_data[x * xDIM + y];
+		int gridLoc = x * xDIM + y;
+		int state = g_data[gridLoc];
 		
 		int neighbourhoodStates[8];
 	
@@ -40,17 +49,17 @@ public :
 			neighbourhoodStates[i] = -1; 
 		}
 
-		getNeighbourhood(neighbourhoodStates,g_data,x * xDIM,y,xDIM);
+		//lattice->getNeighbourhood(neighbourhoodStates,g_data,gridLoc);
 
-		int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,maxBits,neighbourhoodType);
+		int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 
-		for (int i = 0; i < surviveSize; i++) {
-			if (state && liveCells == surviveNo[i]) return state | (1 << noBits);
-		}
-		
-		for (int i = 0; i < bornSize; i++) {		
-			if (!state && liveCells == bornNo[i]) return state |  (1 << noBits);
-		}
+			for (int i = 0; i < surviveSize; i++) {
+				if (state == 1 && liveCells == surviveNo[i]) return setNewState(lattice,1,state);
+			}
+			
+			for (int i = 0; i < bornSize; ++i) {		
+				if (state == 0 && liveCells == bornNo[i]) return setNewState(lattice,1,state);
+			}
 
 		return state; 
 	}
