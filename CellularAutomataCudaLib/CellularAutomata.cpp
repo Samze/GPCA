@@ -30,26 +30,6 @@ CellularAutomata::~CellularAutomata() {
 	caRule = NULL;
 }
 
-void CellularAutomata::generate3DGrid(int dimension, int range)
-{
-	//dimension = DIM;
-	////initialize array based on dim with random values
-	//pFlatGrid = new unsigned int[DIM * DIM * DIM];
-
-	//for (int i = 0; i < DIM; ++i) {
-	//	for (int j = 0; j < DIM; ++j) {
-	//		for (int k = 0; k < DIM; ++k) {
-
-	//		//get random state value bettwen 0 & 1;
-	//		int random = std::rand() % range;
-	//		//assign
-	//		pFlatGrid[(i * DIM) + j + (k * (DIM * DIM))] = random == range - 1 ? 1 : 0;
-	//	//	pFlatGrid[(k * DIM * DIM) + (i * DIM) + j] = 0;
-	//		}
-	//	}
-	//}
-}
-
 
 DLLExport void CellularAutomata::setCARule(AbstractCellularAutomata* ca) {
 	caRule = ca;

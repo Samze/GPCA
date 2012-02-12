@@ -27,11 +27,12 @@ public:
 
 	__device__ __host__  static int getLiveCellCount(int* neighbourhoodStates, int maxBits, int neighbourType) {
 
-		int numLiveCells = 0;
+		int numLiveCells =0;
 
 		for(int i = 0; i < neighbourType; ++i) {
-			if(neighbourhoodStates[i] != -1 && (neighbourhoodStates[i] & maxBits) == 1)
-				++numLiveCells;
+			if(neighbourhoodStates[i] != -1) 
+				if(neighbourhoodStates[i] & maxBits == 1) //This cell's state is alive.
+					++numLiveCells;
 		}
 
 		return numLiveCells;

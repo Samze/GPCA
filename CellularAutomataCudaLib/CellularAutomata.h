@@ -18,8 +18,6 @@
 #ifndef CELLULARAUTOMATA_DLL_H
 #define CELLULARAUTOMATA_DLL_H
 
-#include <cstdlib>
-
 #include "OuterTotalistic.h"
 #include "Generations.h"
 #include "Generations3D.h"
