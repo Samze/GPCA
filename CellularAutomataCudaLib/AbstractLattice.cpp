@@ -14,38 +14,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include "CellularAutomata_GPGPU.h"
-
-CellularAutomata_GPGPU::CellularAutomata_GPGPU(){ 
-
-}
-
-
-CellularAutomata_GPGPU::~CellularAutomata_GPGPU() { 
-
-
-}
-
-float CellularAutomata_GPGPU::nextTimeStep() {
 	
-	Generations* v = dynamic_cast<Generations*>(caRule);
-	OuterTotalistic* v2 = dynamic_cast<OuterTotalistic*>(caRule);
-	Generations3D* v3 = dynamic_cast<Generations3D*>(caRule);
-	SCIARA* v4 = dynamic_cast<SCIARA*>(caRule);
+#include "AbstractLattice.h"
 
-	if(v != 0) {
-		return CUDATimeStep(v);
-	}
-	else if (v2 != 0) {
-		return CUDATimeStep(v2);
-	}
-	else if(v3 != 0) {
-		return CUDATimeStep3D(v3);
-	}
-	else if(v4 != 0) {
-		return CUDATimeStepSCIARA(v4);
-	}
-	return -1;
+
+DLLExport AbstractLattice::AbstractLattice(unsigned int dim) : DIM(dim) {
+
 }
 
+DLLExport AbstractLattice::AbstractLattice(unsigned int dim, unsigned int* grid) :  DIM(dim), pFlatGrid(grid) {
+
+}

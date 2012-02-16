@@ -13,7 +13,7 @@ public:
 
 	__host__ __device__ int setNewState(AbstractLattice* lattice, int newState, int oldState) {
 
-		return oldState | (newState) << lattice->noBits;
+		return oldState | (newState << lattice->noBits);
 	
 	}
 

@@ -59,19 +59,19 @@ public:
 		}
 	}
 
-	//__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int xDIM) {
+	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y) {
 
-	//	switch(neighbourhoodType) {
-	//	case MOORE:
-	//		getMooresNeighbourhood(neighbourStates,g_data,x,y,xDIM);
-	//		break;
-	//	case VON_NEUMANN:
-	//		getVonNeumannNeighbourhood(neighbourStates,g_data,x,y,xDIM);
-	//		break;
-	//	default:
-	//		break;
-	//	}
-	//}
+		switch(neighbourhoodType) {
+		case MOORE:
+			getMooresNeighbourhood(neighbourStates,g_data,x,y,DIM);
+			break;
+		case VON_NEUMANN:
+			getVonNeumannNeighbourhood(neighbourStates,g_data,x,y,DIM);
+			break;
+		default:
+			break;
+		}
+	}
 
 
 	//probably a much better way to figure out the moores neighbourhood, populates a max of 8 neighbours

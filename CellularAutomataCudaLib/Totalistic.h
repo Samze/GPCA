@@ -31,7 +31,7 @@ public:
 
 		for(int i = 0; i < neighbourType; ++i) {
 			if(neighbourhoodStates[i] != -1) 
-				if(neighbourhoodStates[i] & maxBits == 1) //This cell's state is alive.
+				if((neighbourhoodStates[i] & maxBits) == 1) //This cell's state is alive.
 					++numLiveCells;
 		}
 

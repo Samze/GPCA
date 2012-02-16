@@ -36,6 +36,31 @@ __global__ void kernal(CAFunction* func) {
 }
 
 template <typename CAFunction>
+__global__ void SCIARAKernal(CAFunction* func) {
+	
+	int x = threadIdx.x + blockIdx.x * blockDim.x; 
+    int y = threadIdx.y + blockIdx.y * blockDim.y;
+	
+	int DIM = func->lattice->DIM;
+	unsigned int* grid = func->lattice->pFlatGrid;
+
+	if( !(x > DIM) &&  !(y > DIM)) {//Guard against launching too many threads
+	//set new cell state.
+	
+		//__syncthreads();
+
+		grid[(x * DIM) + y] = func->applyFunction(grid,x,y,DIM);
+	
+		//__syncthreads();
+		
+		grid[(x * DIM) + y] = func->computethickness(grid,x,y,DIM);
+
+		//grid[(x * DIM) + y] = (976562499 << func->lattice->noBits);
+		//g_data[(x * *DIM) + y] = (x * *DIM) + y;
+	}
+}
+
+template <typename CAFunction>
 __global__ void kernal3DTest(CAFunction* func) {
 	int DIM = func->lattice->DIM;
 	unsigned int* grid = func->lattice->pFlatGrid;
@@ -51,7 +76,6 @@ __global__ void kernal3DTest(CAFunction* func) {
 	if( x >= DIM ||  y >= DIM || z >= DIM) //Guard against launching too many threads
 		return;
 	
-	//__syncthreads();
 
 	grid[(z * DIM * DIM) + (x * DIM) + y] = func->applyFunction(grid,x,y,z,DIM);
 	

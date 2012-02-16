@@ -23,6 +23,7 @@
 
 #include "OuterTotalistic.h"
 #include "Generations.h"
+#include "SCIARA.h"
 //#include "Generations3D.h"
 
 #define DLLExport __declspec(dllexport)

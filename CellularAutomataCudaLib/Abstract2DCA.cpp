@@ -16,6 +16,7 @@
 */
 
 #include "Abstract2DCA.h"
+#include <cstdlib>
 
 
 Abstract2DCA::Abstract2DCA(void)
@@ -26,18 +27,21 @@ Abstract2DCA::Abstract2DCA(void)
 DLLExport Abstract2DCA::Abstract2DCA(int dimension, int range): AbstractLattice(dimension) {
 	//initialize array based on dim with random values
 	pFlatGrid = new unsigned int[dimension * dimension];
+	
+	unsigned int states = 100 * 25 * 25 * 25 * 25 * 25;
 
 	for (int i = 0; i < dimension; ++i) {
 		for (int j = 0; j < dimension; ++j) {
 
 		////get random state value bettwen 0 & 1;
-		//int random = std::rand() % range;
+		int random = std::rand() % range;
 		////assign
 		//pFlatGrid[i * DIM + j] = random == range - 1 ? 1 : 0;
 		//
 
 			
-		pFlatGrid[i * dimension + j] = 1;
+		pFlatGrid[i * dimension + j] = (50) * (states/100);
+		//pFlatGrid[i * dimension + j] = (50 + random) * (states/100);
 	/*	if (i > DIM/2 && i < DIM/2 + 32 && j > DIM/2 && j < DIM/2 + 32) {
 			pFlatGrid[i * DIM + j] = 1;
 		}

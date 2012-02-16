@@ -52,8 +52,12 @@ public :
 		
 		map<void**, size_t>* newMap = new map<void**, size_t>();
 
+		size_t gridMemSize = lattice->DIM * lattice->DIM * lattice->DIM * sizeof(unsigned int);
+
+		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
 		newMap->insert(make_pair((void**)&bornNo,sizeof(int) * bornSize));
 		newMap->insert(make_pair((void**)&surviveNo,sizeof(int) * surviveSize));
+
 
 		return newMap;
 	}
@@ -125,17 +129,21 @@ public :
 	//	//This is for culling of cubes surrounded on all sides.
 		lattice->neighbourCount[xAltered + y + zAltered] = liveCells;
 		
+		int temp = 0;
+
 		if (state > 1) {
 			if(state >= noStates - 1) {
 				//reset this state next go
 				return state;
 			}
 			else {
-				return setNewState(lattice,state + 1,state);
+				temp = state + 1;
+				return setNewState(lattice,temp,state);
 			}
 		}
 		else {
 
+			//move state == 1 here
 			for (int i = 0; i < surviveSize; i++) {
 				if (state == 1 && liveCells == surviveNo[i]) return setNewState(lattice,1,state);
 			}
