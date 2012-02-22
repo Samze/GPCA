@@ -92,7 +92,7 @@ __device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, in
 
 		// [-1,-1,1]
 		if (x != 0 && y != 0 && zBounds)
-			neighbourStates[2] = g_data[x - xDIM + y - 1 + z + zDIM ];
+			neighbourStates[2] = g_data[x - xDIM + y - 1 + z + zDIM];
 
 
 		// [-1,0,-1]

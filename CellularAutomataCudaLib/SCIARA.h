@@ -54,6 +54,8 @@ public:
 		int xAltered = x * DIM;
 		int gridLoc = x * DIM + y;
 
+		Cell* cell = (struct Cell*)lattice->test();
+
 		//cuda sm1.1 does not support recursion, shame.
 		int originalState = g_data[gridLoc]; 
 		unsigned int state = originalState;
@@ -208,6 +210,8 @@ public:
 		}
 
 		total = 100 * 25 * 25 * 25 * 25 * 25;
+		
+		center.altitude = cell->altitude;
 
 		unsigned int newState2 =  (center.altitude * (total/100)) + (center.thickness * (total/ (100 * 25)))  + (center.outflow[0]  * (total/ (100 * 25 * 25))) + (center.outflow[1] * (total/ (100 * 25 * 25 * 25))) + (center.outflow[2] * (total/ (100 * 25 * 25 * 25 * 25))) + (center.outflow[3]  * (total/ (100 * 25 * 25 * 25 * 25 * 25)));
 		return newState2;//setNewState(lattice,newState,originalState);

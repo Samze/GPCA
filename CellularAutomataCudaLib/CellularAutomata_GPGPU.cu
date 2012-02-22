@@ -33,6 +33,7 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 	OuterTotalistic* v2 = dynamic_cast<OuterTotalistic*>(caRule);
 	Generations3D* v3 = dynamic_cast<Generations3D*>(caRule);
 	SCIARA* v4 = dynamic_cast<SCIARA*>(caRule);
+	SCIARA2* v5 = dynamic_cast<SCIARA2*>(caRule);
 
 	if(v != 0) {
 		return CUDATimeStep(v);
@@ -45,6 +46,9 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 	}
 	else if(v4 != 0) {
 		return CUDATimeStepSCIARA(v4);
+	}
+	else if(v5 != 0) {
+		return CUDATimeStepSCIARA2(v5);
 	}
 	return -1;
 }

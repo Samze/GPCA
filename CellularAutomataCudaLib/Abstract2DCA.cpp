@@ -40,7 +40,7 @@ DLLExport Abstract2DCA::Abstract2DCA(int dimension, int range): AbstractLattice(
 		//
 
 			
-		pFlatGrid[i * dimension + j] = (50) * (states/100);
+		//pFlatGrid[i * dimension + j] = (50 + random) * (states/100);
 		//pFlatGrid[i * dimension + j] = (50 + random) * (states/100);
 	/*	if (i > DIM/2 && i < DIM/2 + 32 && j > DIM/2 && j < DIM/2 + 32) {
 			pFlatGrid[i * DIM + j] = 1;

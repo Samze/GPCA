@@ -27,16 +27,118 @@
 #include "Abstract3DCA.h"
 #include <vector>
 
-template<typename CAFunction>
-extern float CUDATimeStepSCIARA(CAFunction *func) {
+//TEMP REMOVE LATER
+#include "SCIARA2.h"
 
-	unsigned int *dev_pFlatGrid; //Pointers to device allocated memory
+template<typename CAFunction>
+extern float CUDATimeStepSCIARA2(CAFunction *func) {
+
+	void* *dev_pFlatGrid; //Pointers to device allocated memory
 
 	CAFunction *dev_func;
 	Abstract2DCA *dev_lattice;
 
 	Abstract2DCA *tempLattice;
-	unsigned int* tempGrid;
+	void* tempGrid;
+
+	cudaEvent_t start,stop; //Events for timings
+
+	//START: Record duration of GPGPU processing
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+
+	cudaEventRecord(start,0);
+
+	int DIM = func->lattice->DIM;
+
+	//TODO remove this..
+	size_t noCells = DIM * DIM * sizeof(SCIARA2::Cell);
+
+	//Might need to flatten the 2d array ormaybe try "int2" type
+
+	//TODO fix this name
+	size_t size = sizeof(CAFunction);
+	size_t sizeLattice = sizeof(Abstract2DCA);//func->lattice2->size();
+	//Allocate suitable size memory on device
+	cudaMalloc((void**) &dev_pFlatGrid, noCells);
+	cudaMalloc((void**) &dev_func, size);
+	cudaMalloc((void**) &dev_lattice, sizeLattice);
+
+
+	//Make our 2D grid of blocks & threads (DIM/No of threads)
+	//One pixel is one thread.
+	dim3 threads(16,16);
+	dim3 blocks (DIM/threads.x + 1,(DIM/threads.y + 1) * DIM);
+
+
+	cudaMemcpy(dev_pFlatGrid, func->lattice->pFlatGrid, noCells,
+		cudaMemcpyHostToDevice);
+	
+	tempGrid = func->lattice->pFlatGrid;
+
+	func->lattice->pFlatGrid = dev_pFlatGrid;
+
+	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
+		cudaMemcpyHostToDevice);
+
+	//We want to temporarily hold our pointers so we can reassign them after the object copy...
+
+	tempLattice = func->lattice;
+
+	//reassign our pointers so we know where we put our dynamic arrays
+	func->lattice = dev_lattice;
+
+	
+	//Copy our memory from Host to Device
+	cudaMemcpy(dev_func, func,size,
+		cudaMemcpyHostToDevice);
+
+	SCIARAKernal2<<<blocks,threads>>>(dev_func);
+
+	//Copy back to host
+	cudaMemcpy(tempGrid, dev_pFlatGrid, noCells,
+		cudaMemcpyDeviceToHost);
+
+	//Reassign our dynamic array pointers
+	func->lattice = tempLattice;
+	func->lattice->pFlatGrid = tempGrid;
+
+	//STOP : processing done
+	cudaEventRecord(stop,0);
+	cudaEventSynchronize(stop);
+
+	float elapsedTime = 0;
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+
+	
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
+
+	//fix up states - normalize
+	//for (int i = 0; i < DIM; ++i) {
+	//	for (int j = 0; j < DIM; ++j) {
+	//			func->lattice->pFlatGrid[i * DIM +j] = func->lattice->pFlatGrid[i * DIM +j] >> func->lattice->getNoBits();
+	//	}
+	//}
+
+	//Free memory on Device
+	cudaFree(dev_pFlatGrid);
+	cudaFree(dev_func);
+
+	return elapsedTime;
+}
+
+
+template<typename CAFunction>
+extern float CUDATimeStepSCIARA(CAFunction *func) {
+
+	void* dev_pFlatGrid; //Pointers to device allocated memory
+
+	CAFunction *dev_func;
+	Abstract2DCA *dev_lattice;
+
+	Abstract2DCA *tempLattice;
+	void* tempGrid;
 
 	cudaEvent_t start,stop; //Events for timings
 
@@ -127,7 +229,7 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 template<typename CAFunction>
 extern float CUDATimeStep(CAFunction *func) {
 
-	unsigned int *dev_pFlatGrid; //Pointers to device allocated memory
+	void* dev_pFlatGrid; //Pointers to device allocated memory
 	int *dev_born; //to bornNo
 	int *dev_survive; //to surviveNo
 	CAFunction *dev_func;
@@ -136,7 +238,7 @@ extern float CUDATimeStep(CAFunction *func) {
 	int* tempBorn;
 	int* tempSurv;
 	Abstract2DCA *tempLattice;
-	unsigned int* tempGrid;
+	void* tempGrid;
 
 	cudaEvent_t start,stop; //Events for timings
 
@@ -225,7 +327,7 @@ extern float CUDATimeStep(CAFunction *func) {
 	//fix up states - normalize
 	for (int i = 0; i < DIM; ++i) {
 		for (int j = 0; j < DIM; ++j) {
-				func->lattice->pFlatGrid[i * DIM +j] = func->lattice->pFlatGrid[i * DIM +j] >> func->lattice->getNoBits();
+				//func->lattice->pFlatGrid[i * DIM +j] = func->lattice->pFlatGrid[i * DIM +j] >> func->lattice->getNoBits();
 		}
 	}
 
@@ -252,7 +354,7 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	int* tempSurv;
 	unsigned int* tempNeigh;
 	Abstract3DCA *tempLattice;
-	unsigned int* tempGrid;
+	void* tempGrid;
 
 	cudaEvent_t start,stop; //Events for timings
 
@@ -411,7 +513,7 @@ extern float CUDATimeStep3D(CAFunction *func) {
 
 	for (int i = 0; i < DIM * DIM; ++i) {
 		for (int j = 0; j < DIM; ++j) {
-				func->lattice->pFlatGrid[i * DIM +j] = func->lattice->pFlatGrid[i * DIM +j] >> func->lattice->getNoBits();
+				//func->lattice->pFlatGrid[i * DIM +j] = func->lattice->pFlatGrid[i * DIM +j] >> func->lattice->getNoBits();
 		}
 	}
 
