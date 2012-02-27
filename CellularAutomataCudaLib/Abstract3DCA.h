@@ -25,7 +25,7 @@ class Abstract3DCA : public AbstractLattice
 public:
 	DLLExport Abstract3DCA(void);
 	DLLExport Abstract3DCA(int,int); //random data
-	DLLExport Abstract3DCA(unsigned int*, int);
+	DLLExport Abstract3DCA(void*, int);
 
 	DLLExport virtual ~Abstract3DCA(void); //Force use of derived constructor 
 	
@@ -36,203 +36,179 @@ public:
 	//Always better to use constants than defines (effective C++)
 	static const int MOORE_3D = 26;
 	static const int VON_NEUMANN_3D = 6;
-		
-	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int gLocation){
 
-		int z = gLocation / (DIM * DIM);
-		int x = (gLocation - (z * DIM * DIM)) / DIM;
-		int y = gLocation % DIM;
 
-		int zAltered = z * DIM * DIM;
-		int xAltered = x * DIM;
+__device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, int z, int DIM){
 
 		switch(neighbourhoodType) {
 		case MOORE_3D:
-			get3dMooresNeighbourhood(neighbourStates,g_data,xAltered,y,zAltered,DIM);
+			get3dMooresNeighbourhood(neighbourStates,x,y,z, DIM);
 			break;
 		case VON_NEUMANN_3D:
-			get3dVonNeumannNeighbourhood(neighbourStates,g_data,xAltered,y,zAltered,DIM);
+			get3dVonNeumannNeighbourhood(neighbourStates,x,y,z,DIM);
 			break;
 		default:
 			break;
 		}
 	}
-
-__device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, int z,unsigned int* g_data, int gLocation){
-
-		switch(neighbourhoodType) {
-		case MOORE_3D:
-			get3dMooresNeighbourhood(neighbourStates,g_data,x,y,z,DIM);
-			break;
-		case VON_NEUMANN_3D:
-			get3dVonNeumannNeighbourhood(neighbourStates,g_data,x,y,z,DIM);
-			break;
-		default:
-			break;
-		}
-	}
-
+	
 	//probably a much better way to figure out the moores neighbourhood
-	__device__ __host__ void get3dMooresNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int z, int xDIM) {
-		int zDIM = xDIM * xDIM;
-
-		//bool xBounds = (x + (xDIM - 1)/xDIM) < xDIM;
-		//bool zBounds = (z + (zDIM - 1)/zDIM) < zDIM;
-
-		bool xBounds = (x / xDIM) < xDIM -1;
-		bool zBounds = (z / zDIM) < xDIM -1;
+	__device__ __host__ void get3dMooresNeighbourhood(int* neighbourStates, int x, int y, int z, int DIM) {
+		
+		int zDIM = DIM * DIM;
+		
+		bool xBounds = (x / DIM) < DIM -1;
+		bool zBounds = (z / zDIM) < DIM -1;
 
 		// [-1,-1,-1]
 		if (x != 0 && y != 0 && z != 0)
-			neighbourStates[0] = g_data[x - xDIM + y - 1 + z - zDIM];
+			neighbourStates[0] = x - DIM + y - 1 + z - zDIM;
 
 		// [-1,-1,0]
 		if (x != 0 && y != 0)
-			neighbourStates[1] = g_data[x - xDIM + y - 1 + z];
+			neighbourStates[1] = x - DIM + y - 1 + z;
 
 		// [-1,-1,1]
 		if (x != 0 && y != 0 && zBounds)
-			neighbourStates[2] = g_data[x - xDIM + y - 1 + z + zDIM];
+			neighbourStates[2] = x - DIM + y - 1 + z + zDIM;
 
 
 		// [-1,0,-1]
 		if (x != 0 && z != 0)
-			neighbourStates[3] = g_data[x - xDIM + y + z - zDIM];
+			neighbourStates[3] = x - DIM + y + z - zDIM;
 
 		// [-1,0,0]
 		if (x != 0)
-			neighbourStates[4] = g_data[x - xDIM + y  + z];
+			neighbourStates[4] = x - DIM + y  + z;
 				
 		// [-1,0,1]
 		if (x != 0  && zBounds)
-			neighbourStates[5] = g_data[x - xDIM + y + z + zDIM ];
+			neighbourStates[5] = x - DIM + y + z + zDIM;
 		
 		// [-1,1,-1]
-		if (x != 0 && y != xDIM -1 && z != 0 )
-			neighbourStates[6] = g_data[x - xDIM + y + 1 + z - zDIM];
+		if (x != 0 && y != DIM -1 && z != 0 )
+			neighbourStates[6] = x - DIM + y + 1 + z - zDIM;
 				
 		// [-1,1,0]
-		if (x != 0 && y != xDIM -1 )
-			neighbourStates[7] = g_data[x - xDIM + y + 1  + z];
+		if (x != 0 && y != DIM -1 )
+			neighbourStates[7] = x - DIM + y + 1  + z;
 
 		// [-1,1,1
-		if (x != 0 && y != xDIM -1 && zBounds)
-			neighbourStates[8] = g_data[x - xDIM + y + 1 + z + zDIM ];
+		if (x != 0 && y != DIM -1 && zBounds)
+			neighbourStates[8] = x - DIM + y + 1 + z + zDIM;
 				
 		//x = 0
 
 		// [0,-1,-1]
 		if ( y != 0 && z != 0)
-			neighbourStates[9] = g_data[x + y - 1 + z - zDIM];
+			neighbourStates[9] = x + y - 1 + z - zDIM;
 
 		// [0,-1,0]
 		if ( y != 0)
-			neighbourStates[10] = g_data[x + y - 1  + z];
+			neighbourStates[10] = x + y - 1  + z;
 
 		// [0,-1,1]
 		if ( y != 0  && zBounds)
-			neighbourStates[11] = g_data[x + y - 1 + z + zDIM];
+			neighbourStates[11] = x + y - 1 + z + zDIM;
 					
 		// [0,0,-1]
 		if (z != 0)
-			neighbourStates[12] = g_data[x + y + z - zDIM];
+			neighbourStates[12] = x + y + z - zDIM;
 					
 		//0,0,0
 
 		// [0,0,1]
 		if (zBounds)
-			neighbourStates[13] = g_data[x + y + z + zDIM ];
+			neighbourStates[13] = x + y + z + zDIM;
 				
 		// [0,1,-1]
-		if (y != xDIM -1 && z != 0 )
-			neighbourStates[14] = g_data[x + y + 1 + z - zDIM];
+		if (y != DIM -1 && z != 0 )
+			neighbourStates[14] = x + y + 1 + z - zDIM;
 				
 		// [0,1,0]
-		if (y != xDIM -1 )
-			neighbourStates[15] = g_data[x + y + 1  + z];
+		if (y != DIM -1 )
+			neighbourStates[15] = x + y + 1  + z;
 			
 		// [0,1,1]
-		if (y != xDIM -1 && zBounds )
-			neighbourStates[16] = g_data[x + y + 1 + z + zDIM ];
+		if (y != DIM -1 && zBounds )
+			neighbourStates[16] = x + y + 1 + z + zDIM;
 				
 		//x = 1
 
 		// [1,-1,-1]
 		if (xBounds && y != 0 && z != 0)
-			neighbourStates[17] = g_data[x + xDIM + y - 1 + z - zDIM];
+			neighbourStates[17] = x + DIM + y - 1 + z - zDIM;
 				
 		// [1,-1,0]
 		if (xBounds && y != 0 )
-			neighbourStates[18] = g_data[x + xDIM + y - 1  + z];
+			neighbourStates[18] = x + DIM + y - 1  + z;
 				
 		// [1,-1,1]
 		if (xBounds && y != 0  && zBounds)
-			neighbourStates[19] = g_data[x + xDIM + y - 1 + z + zDIM ];
+			neighbourStates[19] = x + DIM + y - 1 + z + zDIM;
 				
 		// [1,0,-1]
 		if (xBounds && z != 0)
-			neighbourStates[20] = g_data[x + xDIM + y + z - zDIM];
+			neighbourStates[20] = x + DIM + y + z - zDIM;
 				
 		// [1,0,0]
 		if (xBounds)
-			neighbourStates[21] = g_data[x + xDIM + y  + z];
+			neighbourStates[21] = x + DIM + y  + z;
 				
 		// [1,0,1]
 		if (xBounds  && zBounds)
-			neighbourStates[22] = g_data[x + xDIM + y + z + zDIM ];
+			neighbourStates[22] = x + DIM + y + z + zDIM;
 
 
 		// [1,1,-1]
-		if (xBounds && y != xDIM - 1 && z != 0 )
-			neighbourStates[23] = g_data[x + xDIM + y + 1 + z - zDIM];
+		if (xBounds && y != DIM - 1 && z != 0 )
+			neighbourStates[23] = x + DIM + y + 1 + z - zDIM;
 
 		// [1,1,0]
-		if (xBounds && y != xDIM - 1 )
-			neighbourStates[24] = g_data[x + xDIM + y + 1  + z];
+		if (xBounds && y != DIM - 1 )
+			neighbourStates[24] = x + DIM + y + 1  + z;
 
 		// [1,1,1]
-		if (xBounds && y != xDIM - 1 && zBounds )
-			neighbourStates[25] = g_data[x + xDIM + y + 1 + z + zDIM ];
+		if (xBounds && y != DIM - 1 && zBounds )
+			neighbourStates[25] = x + DIM + y + 1 + z + zDIM;
 	}
 
-
+	
 		//probably a much better way to figure out the moores neighbourhood
-	__device__ __host__ void get3dVonNeumannNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y, int z, int xDIM) {
-		int zDIM = xDIM * xDIM;
+	__device__ __host__ void get3dVonNeumannNeighbourhood(int* neighbourStates,int x, int y, int z, int DIM) {
+		
+		int zDIM = DIM * DIM;
 
-		//bool xBounds = (x + (xDIM - 1)/xDIM) < xDIM;
-		//bool zBounds = (z + (zDIM - 1)/zDIM) < zDIM;
-
-		bool xBounds = (x / xDIM) < xDIM -1;
-		bool zBounds = (z / zDIM) < xDIM -1;
+		bool xBounds = (x / DIM) < DIM -1;
+		bool zBounds = (z / zDIM) < DIM -1;
 
 		//x = -1
 
 		// [-1,0,0]
 		if (x != 0)
-			neighbourStates[0] = g_data[x - xDIM + y  + z];
+			neighbourStates[0] = x - DIM + y  + z;
 				
 		//x = 0
 		// [0,-1,0]
 		if ( y != 0)
-			neighbourStates[1] = g_data[x + y - 1  + z];
+			neighbourStates[1] = x + y - 1  + z;
 
 		// [0,0,-1]
 		if (z != 0)
-			neighbourStates[2] = g_data[x + y + z - zDIM];
+			neighbourStates[2] = x + y + z - zDIM;
 		
 		// [0,0,1]
 		if (zBounds)
-			neighbourStates[3] = g_data[x + y + z + zDIM ];
+			neighbourStates[3] = x + y + z + zDIM;
 				
 		// [0,1,0]
-		if (y != xDIM -1 )
-			neighbourStates[4] = g_data[x + y + 1  + z];
+		if (y != DIM -1 )
+			neighbourStates[4] = x + y + 1  + z;
 				
 		//x = 1
 		// [1,0,0]
 		if (xBounds)
-			neighbourStates[5] = g_data[x + xDIM + y  + z];
+			neighbourStates[5] = x + DIM + y  + z;
 
 	}
 

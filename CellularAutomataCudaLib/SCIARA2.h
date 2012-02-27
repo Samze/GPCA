@@ -1,3 +1,19 @@
+/*	GPCA - A Cellular Automata library powered by CUDA. 
+    Copyright (C) 2011  Sam Gunaratne University of Plymouth
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
 #include <device_launch_parameters.h>
@@ -26,6 +42,10 @@ public:
 	  float thickness;
 	  float outflow[4];
 	};
+	
+	__host__ virtual size_t getCellSize() {
+		return sizeof(Cell);
+	}
 
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
@@ -54,28 +74,28 @@ public:
 		int xAltered = x * DIM;
 		int gridLoc = x * DIM + y;
 
-		Cell* cell = (struct Cell*)lattice->test();
+		Cell* cellGrid = (Cell*)g_data;
 
 		//cuda sm1.1 does not support recursion, shame.
-		Cell centerCell = ((Cell*)g_data)[gridLoc]; 
+		Cell centerCell = cellGrid[gridLoc]; 
 
 		Cell neighs[4];
 
 		int neighbourhoodStates[4];
-	//
+
 	//	//set as -1 by default.
 		for(int i = 0; i < 4; i++) {
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getVonNeumannNeighbourhood3(neighbourhoodStates,xAltered,y,DIM);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
 			int address = neighbourhoodStates[i];
 			
 			if (address != -1) {
-				neighs[i] =  ((Cell*)g_data)[address];
+				neighs[i] =  cellGrid[address];
 			}
 			else {
 				neighs[i].altitude = 100; //set to max height
@@ -142,7 +162,7 @@ public:
 		}
 
 		//updateCell
-		((Cell*)g_data)[gridLoc] = centerCell;
+		cellGrid[gridLoc] = centerCell;
 
 	}
 
@@ -151,10 +171,11 @@ public:
 		int xAltered = x * DIM;
 		int gridLoc = x * DIM + y;
 
-		Cell* cell = (struct Cell*)lattice->test();
+		Cell* cellGrid = (Cell*)g_data;
+
 
 		//cuda sm1.1 does not support recursion, shame.
-		Cell centerCell = ((Cell*)g_data)[gridLoc]; 
+		Cell centerCell = cellGrid[gridLoc]; 
 
 		Cell neighs[4];
 
@@ -165,14 +186,14 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getVonNeumannNeighbourhood3(neighbourhoodStates,xAltered,y,DIM);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
 			int address = neighbourhoodStates[i];
 			
 			if (address != -1) {
-				neighs[i] =  ((Cell*)g_data)[address];
+				neighs[i] =  cellGrid[address];
 			}
 			else {
 				neighs[i].altitude = 100; //set to max height
@@ -201,7 +222,7 @@ public:
 
 
 		//updateCell
-		((Cell*)g_data)[gridLoc] = centerCell;
+		cellGrid[gridLoc] = centerCell;
 	}
 
 };

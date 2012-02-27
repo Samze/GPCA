@@ -1,3 +1,19 @@
+/*	GPCA - A Cellular Automata library powered by CUDA. 
+    Copyright (C) 2011  Sam Gunaratne University of Plymouth
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
 #include <device_launch_parameters.h>
@@ -29,6 +45,9 @@ public:
 
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
+	__host__ virtual size_t getCellSize() {
+		return sizeof(Cell);
+	}
 
 	__host__ map<void**, size_t>* getDynamicArrays() {
 		
@@ -53,8 +72,6 @@ public:
 
 		int xAltered = x * DIM;
 		int gridLoc = x * DIM + y;
-
-		Cell* cell = (struct Cell*)lattice->test();
 
 		//cuda sm1.1 does not support recursion, shame.
 		int originalState = g_data[gridLoc]; 
@@ -105,7 +122,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,g_data,xAltered,y);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
@@ -211,7 +228,6 @@ public:
 
 		total = 100 * 25 * 25 * 25 * 25 * 25;
 		
-		center.altitude = cell->altitude;
 
 		unsigned int newState2 =  (center.altitude * (total/100)) + (center.thickness * (total/ (100 * 25)))  + (center.outflow[0]  * (total/ (100 * 25 * 25))) + (center.outflow[1] * (total/ (100 * 25 * 25 * 25))) + (center.outflow[2] * (total/ (100 * 25 * 25 * 25 * 25))) + (center.outflow[3]  * (total/ (100 * 25 * 25 * 25 * 25 * 25)));
 		return newState2;//setNewState(lattice,newState,originalState);
@@ -271,7 +287,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,g_data,xAltered,y);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
 		
 		Cell neighs[4];
 		//Populate neighbours

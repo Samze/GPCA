@@ -34,8 +34,13 @@ public :
 	DLLExport __device__ __host__ Generations3D() {}
 	DLLExport __device__ __host__ ~Generations3D() {}
 	
-     int* surviveNo;
+    int* surviveNo;
     int  surviveSize;
+
+	int* bornNo;
+    int bornSize;
+	
+	Abstract3DCA *lattice;
 	
 	__device__ __host__ void setSurviveNo(int* list, int size) {
 		surviveNo = list;
@@ -45,6 +50,10 @@ public :
 	__device__ __host__ void setBornNo(int* list, int size) {
 		bornNo = list;
 		bornSize = size;
+	}
+
+	__host__ virtual size_t getCellSize() {
+		return sizeof(unsigned int);
 	}
 
 	//These return a list of dynamic pointers to be put onto the GPU.
@@ -62,49 +71,19 @@ public :
 		return newMap;
 	}
 
-	__device__ __host__ void setup() {
-		unsigned int* dev_neighCount;
-		unsigned int* tempNeigh;
-	
-		int DIM = lattice->DIM;
 
-		size_t noCells = DIM * DIM * DIM * sizeof(unsigned int);
-
-		cudaMalloc((void**) &dev_neighCount, noCells);
-		
-		tempNeigh = lattice->neighbourCount;
-		lattice->neighbourCount = dev_neighCount;
-		
-		//execution
-		cudaMemcpy(tempNeigh, dev_neighCount, noCells,
-		cudaMemcpyDeviceToHost);
-	}
-
-	__device__ __host__ void cleanup() {
-	/*	unsigned int* tempNeigh;
-		cudaMemcpy(tempNeigh, dev_neighCount, noCells,
-		cudaMemcpyDeviceToHost);
-		
-		lattice->neighbourCount = tempNeigh;
-		
-		cudaFree(dev_neighCount);*/
-	}
-
-	int* bornNo;
-    int bornSize;
-
-	Abstract3DCA *lattice;
-	
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
-	__device__  int applyFunction(unsigned int* g_data, int x, int y, int z, int xDIM) { 
+	__device__  int applyFunction(void* g_data, int x, int y, int z, int xDIM) { 
 
 		int xAltered = x * xDIM;
 		int zAltered = z * xDIM * xDIM;
 
+		unsigned int* cellData = (unsigned int*)g_data;
+		
 		int gridLoc = xAltered + zAltered + y;
 
-		int state = g_data[gridLoc];
+		int state = cellData[gridLoc];
 	//	//We want know about neighbours even if we're not using them to set the next state, this is 
 	//	//so they can not be rendered by the viewer. To speed up the processing, move this to the else
 
@@ -115,13 +94,18 @@ public :
 			neighbourhoodStates[i] = -1; 
 		}
 
-	//	//Populate neighbours states.
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,zAltered,g_data,gridLoc);
-	//	lattice->getNeighbourhood(neighbourhoodStates,g_data,gridLoc);
 
-	//	//we only care about neighbours when we know we're in a ready state
-		
-		//int liveCells =  getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
+	//	//Populate neighbours states.
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,zAltered,xDIM);
+
+
+		//populate our neighbours with their cell state values 
+		for(int i= 0; i <26; i++) {
+			if(neighbourhoodStates[i] != -1) {
+				neighbourhoodStates[i] = cellData[neighbourhoodStates[i]];
+			}
+		}
+
 		int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 
 	//	//int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM);
@@ -129,37 +113,37 @@ public :
 	//	//This is for culling of cubes surrounded on all sides.
 		lattice->neighbourCount[xAltered + y + zAltered] = liveCells;
 		
-		int temp = 0;
+
+		unsigned int newState = state;
 
 		if (state > 1) {
-			if(state >= noStates - 1) {
-				//reset this state next go
-				return state;
-			}
-			else {
-				temp = state + 1;
-				return setNewState(lattice,temp,state);
+			if(state < noStates - 1) {
+				int temp = state + 1;
+				newState = setNewState(lattice,temp,state);
 			}
 		}
-		else {
-
-			//move state == 1 here
+		else if(state == 1){
 			for (int i = 0; i < surviveSize; i++) {
-				if (state == 1 && liveCells == surviveNo[i]) return setNewState(lattice,1,state);
-			}
-			
-			for (int i = 0; i < bornSize; ++i) {		
-				if (state == 0 && liveCells == bornNo[i]) return setNewState(lattice,1,state);
-			}
-			
-			if (state == 1) {
-				if (state < noStates - 1) { //This guards against 2 state generations
-					return setNewState(lattice,2,state);
+				if (liveCells == surviveNo[i]) {
+					newState = setNewState(lattice,1,state);
+					//Should break early here...
 				}
 			}
 		}
+		else if(state == 0) {
+			for (int i = 0; i < bornSize; ++i) {		
+				if (liveCells == bornNo[i]) newState = setNewState(lattice,1,state);
+			}
+		}
+
+		if (state == 1 && newState == state) {
+				if (state < noStates - 1) { //This guards against 2 state generations
+					newState = setNewState(lattice,2,state);
+				}
+		}
 		
-		return state;
+		//Potential bug here, could writing corrupt our data ??
+		cellData[gridLoc] = newState;
 	}
 };
 

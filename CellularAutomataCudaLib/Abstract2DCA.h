@@ -23,19 +23,15 @@
 
 class Abstract2DCA : public AbstractLattice
 {
-	__device__ struct NotACell {
-	  int foo;
-	  int thickness;
-	  int outflow[4];
-	};
 
 public:
 	DLLExport Abstract2DCA(void);
 	DLLExport Abstract2DCA(int,int); //random data
-	DLLExport Abstract2DCA(unsigned int*, int);
+	DLLExport Abstract2DCA(void*, int);
 
-	DLLExport virtual ~Abstract2DCA(void); //This was virtual...????
+	DLLExport virtual ~Abstract2DCA(void); //This was virtual, but this class isn't abstract..?
 	
+	//Currently not used..
 	__host__ virtual size_t size() const { return sizeof(this); }
 
 	//Always better to use constants than defines (effective C++)
@@ -43,144 +39,66 @@ public:
 	static const int MOORE = 8;
 	static const int VON_NEUMANN = 4;
 
-	NotACell cell;
-	
-
-	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int gLocation){
-
-		int x = gLocation / DIM;
-		int y = gLocation % DIM;
-		
-		//this looks odd after the previous lines, however when diving we lose the remainder. so xAltered != gLocation
-		int xAltered = x * DIM;
+	__device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, int DIM) {
 
 		switch(neighbourhoodType) {
 		case MOORE:
-			getMooresNeighbourhood(neighbourStates,g_data,xAltered,y,DIM);
+			getMooresNeighbourhood(neighbourStates,x,y,DIM);
 			break;
 		case VON_NEUMANN:
-			getVonNeumannNeighbourhood(neighbourStates,g_data,xAltered,y,DIM);
+			getVonNeumannNeighbourhood(neighbourStates,x,y,DIM);
 			break;
 		default:
 			break;
 		}
 	}
 
-	__device__ __host__ void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int x, int y) {
-
-		switch(neighbourhoodType) {
-		case MOORE:
-			getMooresNeighbourhood(neighbourStates,g_data,x,y,DIM);
-			break;
-		case VON_NEUMANN:
-			getVonNeumannNeighbourhood(neighbourStates,g_data,x,y,DIM);
-			break;
-		default:
-			break;
-		}
-	}
-
-	 __device__ void* test() {
-
-		 cell.foo = 1;
-		 cell.thickness = 1;
-		 cell.outflow[0] = 1;
-		 cell.outflow[1] = 2;
-		 cell.outflow[2] = 3;
-		 cell.outflow[3] = 4;
-
-		 return &cell;
-	 }
+private:
 
 	//probably a much better way to figure out the moores neighbourhood, populates a max of 8 neighbours
-	__device__ __host__ void getMooresNeighbourhood(int* neighbours, unsigned int* g_data, int x, int y, int xDIM) {
+	__device__ __host__ void getMooresNeighbourhood(int* neighbours,int x, int y, int DIM) {
+		
+
+		bool xBounds = (x / DIM) < DIM -1 ;
 
 		// [-1,-1]
 		if (x != 0 && y != 0)
-			neighbours[0] = g_data[x - xDIM + y - 1];
+			neighbours[0] = x - DIM + y - 1;
 
 		// [0,-1]
 		if ( y != 0)
-			neighbours[1] = g_data[x + y - 1];
+			neighbours[1] = x + y - 1;
 
 		// [1,-1]
-		if (x != xDIM - 1 && y != 0 )
-			neighbours[2] = g_data[x + xDIM + y - 1];
+		if (xBounds && y != 0 )
+			neighbours[2] = x + DIM + y - 1;
 
 		// [-1,0]
 		if (x != 0)
-			neighbours[3] = g_data[x - xDIM + y];
+			neighbours[3] = x - DIM + y;
 
 		// [1,0]
-		if (x != xDIM - 1)
-			neighbours[4] =  g_data[x + xDIM + y];
+		if (xBounds)
+			neighbours[4] = x + DIM + y;
 
 		// [-1,1]
-		if (x != 0 && y != xDIM -1 )
-			neighbours[5] = g_data[x - xDIM + y + 1];
+		if (x != 0 && y != DIM - 1)
+			neighbours[5] = x - DIM + y + 1;
 
 		// [0,1]
-		if (y != xDIM -1 )
-			neighbours[6] = g_data[x + y + 1];
+		if (y != DIM -1 )
+			neighbours[6] = x + y + 1;
 
 		// [1,1]
-		if (x != xDIM -1 && y != xDIM - 1 )
-			neighbours[7] = g_data[x + xDIM + y + 1];
+		if (xBounds && y != DIM - 1 )
+			neighbours[7] = x + DIM + y + 1;
 
 	}
+
 	//Populates a max of 4 neighbours
-	__device__ __host__ void getVonNeumannNeighbourhood(int* neighbours, unsigned int* g_data, int x, int y, int xDIM) {
-
-		// [0,-1]
-		if ( y != 0)
-			neighbours[0] = g_data[x + y - 1];
-
-		// [-1,0]
-		if (x != 0)
-			neighbours[1] = g_data[x - xDIM + y];
-
-		// [1,0]
-		if (x != xDIM - 1)
-			neighbours[2] =  g_data[x + xDIM + y];
-
-		// [0,1]
-		if (y != xDIM -1 )
-			neighbours[3] = g_data[x + y + 1];
-	}
-	
-
-	//int represents the pointer value, I have no idea how to get CUDA specific information as to what datatype to store a pointer in....can't use void* as
-	//I can't make it modifible...TODO look into this later.
-	__device__ __host__ void getVonNeumannNeighbourhood2(int* neighbours, void* g_data, int x, int y, int xDIM,size_t structSize) {
+	__device__ __host__ void getVonNeumannNeighbourhood(int* neighbours, int x, int y, int DIM) {
 		
-			
-		void* myPointer = (void*)(&g_data + 1);
-
-
-		neighbours[0] = (int)myPointer;
-		(void*)(&g_data + structSize);
-
-
-	// [0,-1]
-		if ( y != 0)
-			neighbours[0] = (int)(&g_data + ((x + y - 1) * structSize));
-
-		// [-1,0]
-		if (x != 0)
-			neighbours[1] = (int)(&g_data + ((x - xDIM + y) * structSize));
-
-		// [1,0]
-		if (x != xDIM - 1)
-			neighbours[2] =  (int)(&g_data + ((x + xDIM + y) * structSize));
-
-		// [0,1]
-		if (y != xDIM -1 )
-			neighbours[3] = (int)(&g_data + ((x + y + 1) * structSize));
-	}
-	//Populates a max of 4 neighbours
-	__device__ __host__ void getVonNeumannNeighbourhood3(int* neighbours, int x, int y, int xDIM) {
-		
-		bool xBounds = (x / xDIM) < xDIM -1 ;
+		bool xBounds = (x / DIM) < DIM -1 ;
 
 		// [0,-1]
 		if ( y != 0){
@@ -189,18 +107,19 @@ public:
 
 		// [-1,0]
 		if (x != 0){
-			neighbours[1] = x - xDIM + y;
+			neighbours[1] = x - DIM + y;
 		}
 
 		// [1,0]
 		if (xBounds){
-			neighbours[2] = x + xDIM + y;
+			neighbours[2] = x + DIM + y;
 		}
 
 		// [0,1]
-		if (y != xDIM - 1) {
+		if (y != DIM - 1) {
 			neighbours[3] = x + y + 1;
 		}
 	}
 };
+
 

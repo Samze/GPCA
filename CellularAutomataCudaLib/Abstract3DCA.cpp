@@ -28,11 +28,14 @@ Abstract3DCA::~Abstract3DCA(void)
 {
 }
 
+//This will create a unsigned integer array of states. 
 DLLExport Abstract3DCA::Abstract3DCA(int dimension, int range): AbstractLattice(dimension) {
 	//initialize array based on dim with random values
 	pFlatGrid = new unsigned int[dimension * dimension * dimension];
 
 	neighbourCount = new unsigned int[dimension * dimension * dimension];
+
+	unsigned int* intGrid = (unsigned int*)pFlatGrid;
 
 	for (int i = 0; i < dimension; ++i) {
 		for (int j = 0; j < dimension; ++j) {
@@ -41,13 +44,14 @@ DLLExport Abstract3DCA::Abstract3DCA(int dimension, int range): AbstractLattice(
 			//get random state value bettwen 0 & 1;
 			int random = std::rand() % range;
 			//assign
-			//pFlatGrid[(i * dimension) + j + (k * (dimension * dimension))] = random == range - 1 ? 1 : 0;
-			//pFlatGrid[(k * DIM * DIM) + (i * DIM) + j] = 1;
+
+			intGrid[(i * dimension) + j + (k * (dimension * dimension))] = random == range - 1 ? 1 : 0;
+			//intGrid[(k * DIM * DIM) + (i * DIM) + j] = 1;
 			}
 		}
 	}
 }
 
-DLLExport Abstract3DCA::Abstract3DCA(unsigned int *pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
+DLLExport Abstract3DCA::Abstract3DCA(void *pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
 
 }

@@ -27,8 +27,8 @@ Abstract2DCA::Abstract2DCA(void)
 DLLExport Abstract2DCA::Abstract2DCA(int dimension, int range): AbstractLattice(dimension) {
 	//initialize array based on dim with random values
 	pFlatGrid = new unsigned int[dimension * dimension];
-	
-	unsigned int states = 100 * 25 * 25 * 25 * 25 * 25;
+
+	unsigned int* intGrid = (unsigned int*)pFlatGrid;
 
 	for (int i = 0; i < dimension; ++i) {
 		for (int j = 0; j < dimension; ++j) {
@@ -36,51 +36,13 @@ DLLExport Abstract2DCA::Abstract2DCA(int dimension, int range): AbstractLattice(
 		////get random state value bettwen 0 & 1;
 		int random = std::rand() % range;
 		////assign
-		//pFlatGrid[i * DIM + j] = random == range - 1 ? 1 : 0;
+		intGrid[i * DIM + j] = random == range - 1 ? 1 : 0;
 		//
-
-			
-		//pFlatGrid[i * dimension + j] = (50 + random) * (states/100);
-		//pFlatGrid[i * dimension + j] = (50 + random) * (states/100);
-	/*	if (i > DIM/2 && i < DIM/2 + 32 && j > DIM/2 && j < DIM/2 + 32) {
-			pFlatGrid[i * DIM + j] = 1;
-		}
-		else {
-			pFlatGrid[i * DIM + j] = 0;
-		}*/
-	
-		////create cube
-		//int size = 1;
-
-		//if (i >= DIM/2 && i <= DIM/2 + size && j == DIM/2) {
-		//		pFlatGrid[i * DIM + j] = 1;
-		//}
-		//else if (i == DIM/2 && j >= DIM/2 && j <= DIM/2 + size) {
-		//		pFlatGrid[i * DIM + j] = 1;
-		//}
-		//else if (i == DIM/2 + size && j >= DIM/2 && j <= DIM/2 + size) {
-		//		pFlatGrid[i * DIM + j] = 1;
-		//}
-		//else if (i >= DIM/2 && i <= DIM/2 + size && j == DIM/2 + size) {
-		//		pFlatGrid[i * DIM + j] = 1;
-		//}
-		//
-		//else {
-		//	pFlatGrid[i * DIM + j] = 0;
-		//}
-
-	/*	if ((j == DIM/2 || j == DIM/2 + 1) && i == DIM/2) {
-				pFlatGrid[i * DIM + j] = 1;
-		}
-		else {
-			pFlatGrid[i * DIM + j] = 0;
-		}
-		*/
 		}
 	}
 }
 
-DLLExport Abstract2DCA::Abstract2DCA(unsigned int *pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
+DLLExport Abstract2DCA::Abstract2DCA(void* pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
 
 }
 

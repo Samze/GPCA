@@ -28,7 +28,7 @@ class AbstractLattice
 public:
 	DLLExport AbstractLattice(void) {}
 	DLLExport AbstractLattice(unsigned int dim);
-	DLLExport AbstractLattice(unsigned int dim, unsigned int* grid);
+	DLLExport AbstractLattice(unsigned int dim, void* grid);
 
 	DLLExport virtual ~AbstractLattice(void) {}
 	
@@ -43,8 +43,6 @@ public:
 public:
 	int noBits;
 	int maxBits;
-
-	int type;
 
 	int neighbourhoodType;
 	

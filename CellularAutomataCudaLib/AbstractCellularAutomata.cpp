@@ -33,3 +33,8 @@ void AbstractCellularAutomata::setStates(unsigned int states) {
 			lattice->maxBits = (lattice->maxBits << 1) + 1;
 		}
 }
+
+size_t AbstractCellularAutomata::getCellSize() {
+
+	return 0;
+}

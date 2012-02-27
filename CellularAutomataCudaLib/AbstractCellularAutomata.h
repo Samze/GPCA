@@ -22,6 +22,9 @@ public:
 	//Instead we have hold the Lattice in the subclass and use a virtual method to obtain it in an OO manner.
 	__host__ virtual AbstractLattice* getLattice() = 0;
 
+	//The CA rule needs to indicate the exact size in bytes a Cell structure is.
+	__host__ virtual size_t getCellSize() = 0;
+
 protected:
 	int noStates;
 

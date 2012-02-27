@@ -30,6 +30,10 @@ public :
 	DLLExport __device__ __host__ Generations() {}
 	DLLExport __device__ __host__ ~Generations() {}
 
+	__host__ __device__ struct Cell {
+	  unsigned int state;
+	};
+	
     int* surviveNo;
     int  surviveSize;
 	
@@ -50,21 +54,28 @@ public :
 	
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
-	__device__  int applyFunction(unsigned int* g_data, int x, int y, int xDIM) { 
-		
-		int gridLoc = x * xDIM + y;
-		int state = g_data[gridLoc];
-		int temp = 0;
 
+	__host__ virtual size_t getCellSize() {
+		return sizeof(unsigned int);
+	}
+
+	__device__  int applyFunction(void* g_data, int x, int y, int xDIM) { 
+		
+		int xAltered = x * xDIM;
+		int gridLoc = x * xDIM + y;
+
+		unsigned int* cellData = (unsigned int*)g_data;
+
+		int state = cellData[gridLoc];
+
+		int newState = state;
+
+		int temp = 0;
 		//generations specialism
 		if (state > 1) {
-			if(state >= noStates - 1) {
-				//reset this state next go
-				return state;
-			}
-			else {
+			if(state < noStates - 1) {
 				temp = state + 1;
-				return setNewState(lattice,temp,state);			
+				newState = setNewState(lattice,temp,state);			
 			}
 		}
 		else {
@@ -78,54 +89,56 @@ public :
 			}
 
 			//Populate neighbours states.
-			lattice->getNeighbourhood(neighbourhoodStates,g_data,gridLoc);
+			lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM);
+
+
+			int liveCells =0;
+
+			for(int i = 0; i < lattice->neighbourhoodType; ++i) {
+				if(cellData[neighbourhoodStates[i]] != -1) {
+
+			/*		int neighX = neighbourhoodStates[i] / xDIM;
+					int neighY = neighbourhoodStates[i] % xDIM;
+					
+					neighY = neighY - (blockIdx.y * blockDim.y);
+					neighX = neighX - (blockIdx.x * blockDim.x);*/
+
+					//And back to our flat shared array..
+					if((cellData[neighbourhoodStates[i]] & lattice->maxBits) == 1) //This cell's state is alive.
+						++liveCells;
+				}
+			}
+
 
 			//we only care about neighbours when we know we're in a ready state
-			int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
+			//int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 	
-			for (int i = 0; i < surviveSize; i++) {
-				if (state == 1 && liveCells == surviveNo[i]) return setNewState(lattice,1,state);
+			if(state == 1) {
+				
+				for (int i = 0; i < surviveSize; i++) {
+					if (liveCells == surviveNo[i]) newState = setNewState(lattice,1,state);
+				}
+
+			}
+			else if(state == 0) {
+				
+				for (int i = 0; i < bornSize; ++i) {		
+					if (liveCells == bornNo[i]) newState = setNewState(lattice,1,state);
+				}
+			
 			}
 			
-			for (int i = 0; i < bornSize; ++i) {		
-				if (state == 0 && liveCells == bornNo[i]) return setNewState(lattice,1,state);
-			}
-			
-			if (state == 1) {
+			if (state == 1 && newState == state) {
 				if (state < noStates - 1) { //This guards against 2 state generations
-					return setNewState(lattice,2,state);
+					newState = setNewState(lattice,2,state);
 				}
 			}
 		}
 
-
-		return state;
+		//Potential bug here, could writing corrupt our data ??
+		cellData[gridLoc] = newState;
 
 	}
-
-	//DLLExport virtual void setStates(unsigned int states) {
-
-	//	noStates = states;
-
-	//	//calculate how many bits are needed to hold a states
-	//	//we need to minus one to properly reflect the fact that 1 bit can hold 2 states
-	//	// 3 bits can hold 8 states etc.
-
-	//	states = states - 1;
-
-	//	lattice->noBits = 0;
-	//	while (states != 0) { 
-	//		states = states >> 1; 
-	//		++lattice->noBits;
-	//	}
-
-	//	lattice->maxBits = 1;
-
-	//	for (int i = 1; i < lattice->noBits; i++) {
-	//		lattice->maxBits = (lattice->maxBits << 1) + 1;
-	//	}
-	//}
-
 };
 
 

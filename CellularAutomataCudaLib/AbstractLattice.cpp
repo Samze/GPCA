@@ -22,6 +22,6 @@ DLLExport AbstractLattice::AbstractLattice(unsigned int dim) : DIM(dim) {
 
 }
 
-DLLExport AbstractLattice::AbstractLattice(unsigned int dim, unsigned int* grid) :  DIM(dim), pFlatGrid(grid) {
+DLLExport AbstractLattice::AbstractLattice(unsigned int dim, void* grid) :  DIM(dim), pFlatGrid(grid) {
 
 }
