@@ -159,7 +159,8 @@ __global__ void kernal3DTest(CAFunction* func) {
 	unsigned int* grid = (unsigned int*)func->lattice->pFlatGrid;
 
 	int blockSlice = blockIdx.x / gridDim.y;
-
+	
+	__shared__ unsigned int shar_data[512];
 
 	int x = threadIdx.x + (blockIdx.x - (blockSlice * gridDim.y))  * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y; 
@@ -170,7 +171,6 @@ __global__ void kernal3DTest(CAFunction* func) {
 	//TODO fix coding style inconsistancy.
 	if( x >= DIM ||  y >= DIM || z >= DIM) //Guard against launching too many threads
 		return;
-
 
 	func->applyFunction(grid,x,y,z,DIM);
 }
@@ -183,15 +183,10 @@ __global__ void kernal3DTestShared(CAFunction* func) {
 
 	int blockSlice = blockIdx.x / gridDim.y;
 
-
 	int x = threadIdx.x + (blockIdx.x - (blockSlice * gridDim.y))  * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y; 
 	int z = threadIdx.z + blockSlice * blockDim.z;
 
-	int bx = threadIdx.x - 1;
-	int by = threadIdx.y - 1;
-	int bz = threadIdx.z - 1;
-	
 	//8*8*8, 512 is the maximum size of a block..
 	__shared__ unsigned int shar_data[512];
 
@@ -201,41 +196,29 @@ __global__ void kernal3DTestShared(CAFunction* func) {
 	int zOrigin = (z - 1) - (blockSlice * 2);
 
 
+	int sharPos = (threadIdx.z * blockDim.z * blockDim.z) + (threadIdx.x * blockDim.x) + threadIdx.y;	
 
-	int sharPos = (threadIdx.z * pow(blockDim.z,2.0f)) + (threadIdx.x * blockDim.x) + threadIdx.y;
-	
-	int globPos = (zOrigin * DIM * DIM ) + (xOrigin * DIM) + yOrigin;
+	int globPos = (zOrigin * DIM * DIM) + (xOrigin * DIM) + yOrigin;
 
+	int bounds = (blockDim.x * gridDim.y) - 1;
 
-	//checking bounds..
-	if(x != 0 && y != 0 && x != blockDim.x * gridDim.y && y != blockDim.y * gridDim.y && z != 0 && z != blockDim.x * gridDim.y) {
+	////checking bounds..
+	if(x != 0 && y != 0 && z != 0 && x !=  bounds && y != bounds  && z != bounds) {
 		shar_data[sharPos] = grid[globPos];
 	} 
 	else{
 		shar_data[sharPos] = 0;
 	}
-
-	//void* grid = func->lattice->pFlatGrid;
-	//__syncthreads();
-
-	//
-	////We only want to update the state of cells in our 'inner area'
-	//if(bx >= 0 && bx < 6 && by >= 0 && by < 6 && bz >= 0 && bz < 6) {
-
-	//	//grid[globPos] = 3;
-
-	//	func->applyFunction(shar_data,threadIdx.x,threadIdx.y,threadIdx.z,blockDim.y);
-
-	//	grid[globPos] = shar_data[sharPos];
-
-	//}
-
-
-	//TODO fix coding style inconsistancy.
-	//if( x >= DIM ||  y >= DIM || z >= DIM) //Guard against launching too many threads
-	//	return;
 	
 
-//	grid[(z * DIM * DIM) + (x * DIM) + y] = func->applyFunction(grid,x,y,z,DIM);
-	//func->applyFunction(grid,x,y,z,DIM);
+	__syncthreads();
+
+	////We only want to update the state of cells in our 'inner area'
+	if((threadIdx.x - 1) >= 0 && (threadIdx.x - 1) < 6 && (threadIdx.y - 1) >= 0 && (threadIdx.y - 1) < 6 && (threadIdx.z - 1) >= 0 && (threadIdx.z - 1) < 6) {
+		
+		func->applyFunction(shar_data,threadIdx.x,threadIdx.y,threadIdx.z,blockDim.y);
+		grid[globPos] = shar_data[sharPos];
+
+	}
+
 }

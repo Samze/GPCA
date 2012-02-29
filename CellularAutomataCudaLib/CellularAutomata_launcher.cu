@@ -268,8 +268,8 @@ extern float CUDATimeStep(CAFunction *func) {
 	cudaMalloc((void**) &dev_survive, sizeof(int) * func->surviveSize);
 
 	//Make our 2D grid of blocks & threads (DIM/No of threads)
-	//One pixel is one thread.
-	dim3 threads(22,22); //They are +2 for shared memory padding!
+	//One pixel is one thread.6
+	dim3 threads(21,21); //They are +2 for shared memory padding!
 	dim3 blocks (DIM/20,DIM/20);
 
 
@@ -303,7 +303,7 @@ extern float CUDATimeStep(CAFunction *func) {
 	cudaMemcpy(dev_func, func,size,
 		cudaMemcpyHostToDevice);
 
-	kernal<<<blocks,threads>>>(dev_func);
+	kernalSharedMem<<<blocks,threads>>>(dev_func);
 
 	//Copy back to host
 	cudaMemcpy(tempGrid, dev_pFlatGrid, noCells,
@@ -406,10 +406,11 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	//func->setup();
 
 	//Make our 3D grid of blocks & threads (DIM/No of threads)
-	//One pixel is one thread.
+	//One pixel is one thread
 
 	dim3 threads(8,8,8);
 	
+	//dim3 blocks((DIM/(threads.x)) * (DIM/(threads.z) ),DIM/(threads.y));
 	dim3 blocks((DIM/(threads.x - 2)) * (DIM/(threads.z- 2) ),DIM/(threads.y - 2));
 
 	//dim3 threads(16,16);
@@ -698,7 +699,7 @@ extern float CUDATimeStep3DOLD(CAFunction *func) {
 
 	for (int i = 0; i < DIM * DIM; ++i) {
 		for (int j = 0; j < DIM; ++j) {
-				newGrid[i * DIM +j] = newGrid[i * DIM +j] >> func->lattice->getNoBits();
+				//newGrid[i * DIM +j] = newGrid[i * DIM +j] >> func->lattice->getNoBits();
 		}
 	}
 

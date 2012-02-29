@@ -25,9 +25,9 @@ public:
 	__device__  __host__ Totalistic(void) { }
 	__device__  __host__ ~Totalistic(void) { }
 
-	__device__ __host__  static int getLiveCellCount(int* neighbourhoodStates, int maxBits, int neighbourType) {
+	__device__ __host__  static unsigned int getLiveCellCount(int* neighbourhoodStates, int maxBits, int neighbourType) {
 
-		int numLiveCells =0;
+		unsigned int numLiveCells =0;
 
 		for(int i = 0; i < neighbourType; ++i) {
 			if(neighbourhoodStates[i] != -1) 

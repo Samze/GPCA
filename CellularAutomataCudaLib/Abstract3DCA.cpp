@@ -45,8 +45,8 @@ DLLExport Abstract3DCA::Abstract3DCA(int dimension, int range): AbstractLattice(
 			int random = std::rand() % range;
 			//assign
 
-			intGrid[(i * dimension) + j + (k * (dimension * dimension))] = random == range - 1 ? 1 : 0;
-			//intGrid[(k * DIM * DIM) + (i * DIM) + j] = 1;
+			intGrid[(i * dimension) + j + (k * dimension * dimension)] = random == range - 1 ? 1 : 0;
+		//	intGrid[(k * DIM * DIM) + (i * DIM) + j] = 1;
 			}
 		}
 	}

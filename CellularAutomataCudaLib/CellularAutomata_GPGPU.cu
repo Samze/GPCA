@@ -35,7 +35,7 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 	SCIARA* v4 = dynamic_cast<SCIARA*>(caRule);
 	SCIARA2* v5 = dynamic_cast<SCIARA2*>(caRule);
 	
-
+	//No support for Runtime polymorphism inside the kernel.
 	if(v != 0) {
 		return CUDATimeStep(v);
 	}

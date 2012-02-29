@@ -87,9 +87,10 @@ public :
 	//	//We want know about neighbours even if we're not using them to set the next state, this is 
 	//	//so they can not be rendered by the viewer. To speed up the processing, move this to the else
 
-		int neighbourhoodStates[26];
+		int neighbourhoodStates[26];//= {-1};
 	//
 	//	//set as -1 by default.
+		//TODO Add unrolling here!
 		for(int i = 0; i < 26; i++) {
 			neighbourhoodStates[i] = -1; 
 		}
@@ -100,18 +101,20 @@ public :
 
 
 		//populate our neighbours with their cell state values 
+		//TODO Add unrolling here!
 		for(int i= 0; i <26; i++) {
 			if(neighbourhoodStates[i] != -1) {
 				neighbourhoodStates[i] = cellData[neighbourhoodStates[i]];
 			}
 		}
 
-		int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
+		unsigned int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 
 	//	//int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM);
 
 	//	//This is for culling of cubes surrounded on all sides.
-		lattice->neighbourCount[xAltered + y + zAltered] = liveCells;
+		
+		//lattice->neighbourCount[xAltered + y + zAltered] = liveCells;
 		
 
 		unsigned int newState = state;
@@ -142,6 +145,7 @@ public :
 				}
 		}
 		
+
 		//Potential bug here, could writing corrupt our data ??
 		cellData[gridLoc] = newState;
 	}
