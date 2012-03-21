@@ -47,6 +47,18 @@ public:
 		return sizeof(Cell);
 	}
 
+	//TODO move this to .cpp
+	__host__ virtual void setLattice(AbstractLattice* newLattice) {
+
+		if(newLattice == lattice)
+			return;
+
+		Abstract2DCA* new2DLattice = dynamic_cast<Abstract2DCA*>(newLattice);
+
+		lattice = new2DLattice;
+		
+	} 
+
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
 
@@ -54,7 +66,7 @@ public:
 		
 		map<void**, size_t>* newMap = new map<void**, size_t>();
 
-		size_t gridMemSize = lattice->DIM * lattice->DIM * lattice->DIM * sizeof(unsigned int);
+		size_t gridMemSize = lattice->xDIM * lattice->yDIM * sizeof(unsigned int);
 
 		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
 
@@ -69,14 +81,13 @@ public:
 
 	max = 1000 * 100 * 800;
 	*/
-	__device__  int applyFunction(void* g_data, int x, int y, int DIM) { 
+	__device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
 
-		int xAltered = x * DIM;
-		int gridLoc = x * DIM + y;
+		int xAltered = x * yDIM;
+		int gridLoc = x * yDIM + y;
 
 		Cell* cellGrid = (Cell*)g_data;
 
-		//cuda sm1.1 does not support recursion, shame.
 		Cell centerCell = cellGrid[gridLoc]; 
 
 		Cell neighs[4];
@@ -88,7 +99,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
@@ -98,7 +109,7 @@ public:
 				neighs[i] =  cellGrid[address];
 			}
 			else {
-				neighs[i].altitude = 100; //set to max height
+				neighs[i].altitude = 10000; //set to max height
 				neighs[i].thickness = 0;
 				neighs[i].outflow[0] = 0;
 				neighs[i].outflow[1] = 0;
@@ -166,10 +177,10 @@ public:
 
 	}
 
-	__device__  int computethickness(void* g_data, int x, int y, int DIM) { 
+	__device__  int computethickness(void* g_data, int x, int y, int xDIM, int yDIM) { 
 		
-		int xAltered = x * DIM;
-		int gridLoc = x * DIM + y;
+		int xAltered = x * yDIM;
+		int gridLoc = x * yDIM + y;
 
 		Cell* cellGrid = (Cell*)g_data;
 
@@ -186,7 +197,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
@@ -196,7 +207,7 @@ public:
 				neighs[i] =  cellGrid[address];
 			}
 			else {
-				neighs[i].altitude = 100; //set to max height
+				neighs[i].altitude = 10000; //set to max height
 				neighs[i].thickness = 0;
 				neighs[i].outflow[0] = 0;
 				neighs[i].outflow[1] = 0;
@@ -219,6 +230,7 @@ public:
 		}
 
 		centerCell.thickness = new_thickness;
+		//centerCell.thickness = 100;
 
 
 		//updateCell

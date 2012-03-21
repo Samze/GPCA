@@ -24,7 +24,7 @@
 #include "cuda.h"
 #include "Totalistic.h"
 
-class Generations : public AbstractCellularAutomata{
+class Generations : public Totalistic{
 
 public :
 	DLLExport __device__ __host__ Generations() {}
@@ -34,35 +34,30 @@ public :
 	  unsigned int state;
 	};
 	
-    int* surviveNo;
-    int  surviveSize;
-	
-	__device__ __host__ void setSurviveNo(int* list, int size) {
-		surviveNo = list;
-		surviveSize = size;
-	}
-
-	__device__ __host__ void setBornNo(int* list, int size) {
-		bornNo = list;
-		bornSize = size;
-	}
-	
-	int* bornNo;
-    int bornSize;
-
 	Abstract2DCA *lattice;
 	
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
+	
+	//TODO move this to .cpp
+	__host__ virtual void setLattice(AbstractLattice* newLattice) {
 
+		if(newLattice == lattice)
+			return;
+
+		Abstract2DCA* new2DLattice = dynamic_cast<Abstract2DCA*>(newLattice);
+
+		lattice = new2DLattice;
+		
+	} 
 
 	__host__ virtual size_t getCellSize() {
 		return sizeof(unsigned int);
 	}
 
-	__device__  int applyFunction(void* g_data, int x, int y, int xDIM) { 
+	__device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
 		
-		int xAltered = x * xDIM;
-		int gridLoc = x * xDIM + y;
+		int xAltered = x * yDIM;
+		int gridLoc = x * yDIM + y;
 
 		unsigned int* cellData = (unsigned int*)g_data;
 
@@ -89,10 +84,13 @@ public :
 			}
 
 			//Populate neighbours states.
-			lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM);
+			lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
 
 
-			int liveCells =0;
+
+
+			//Should probably move this code to TOTALISTIC CLASS, but it might slow it down..
+			int liveCells = 0;//getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 
 			for(int i = 0; i < lattice->neighbourhoodType; ++i) {
 				if(cellData[neighbourhoodStates[i]] != -1) {

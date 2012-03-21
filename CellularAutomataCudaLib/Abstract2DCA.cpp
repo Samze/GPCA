@@ -24,19 +24,29 @@ Abstract2DCA::Abstract2DCA(void)
 	
 }
 
-DLLExport Abstract2DCA::Abstract2DCA(int dimension, int range): AbstractLattice(dimension) {
+DLLExport Abstract2DCA::Abstract2DCA(int xDIM, int newYDIM, int range): AbstractLattice(xDIM) {
 	//initialize array based on dim with random values
-	pFlatGrid = new unsigned int[dimension * dimension];
+	yDIM = newYDIM;
+
+	pFlatGrid = new unsigned int[xDIM * yDIM];
 
 	unsigned int* intGrid = (unsigned int*)pFlatGrid;
 
-	for (int i = 0; i < dimension; ++i) {
-		for (int j = 0; j < dimension; ++j) {
+	for (int i = 0; i < xDIM; ++i) {
+		for (int j = 0; j < yDIM; ++j) {
 
-		////get random state value bettwen 0 & 1;
-		int random = std::rand() % range;
+			int newVal;
+
+			if(range == 0) {
+				newVal = 0;
+			}
+			else {
+				//get random state value bettwen 0 & 1;
+				int random = std::rand() % range;
+				newVal = random == range - 1 ? 1 : 0;
+			}
 		////assign
-		intGrid[i * DIM + j] = random == range - 1 ? 1 : 0;
+		intGrid[i * yDIM + j] = newVal;
 		//
 		}
 	}

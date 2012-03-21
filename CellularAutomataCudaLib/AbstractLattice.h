@@ -37,7 +37,7 @@ public:
 	__host__ virtual size_t size() const = 0;
 	
 	void *pFlatGrid;
-	unsigned int DIM;
+	unsigned int xDIM;
 
 
 public:

@@ -49,9 +49,10 @@ extern float CUDATimeStepSCIARA2(CAFunction *func) {
 
 	cudaEventRecord(start,0);
 
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;
+	int yDIM = func->lattice->yDIM;
 
-	size_t noCells = DIM * DIM * func->getCellSize();
+	size_t noCells = xDIM * yDIM * func->getCellSize();
 
 	//Might need to flatten the 2d array ormaybe try "int2" type
 
@@ -67,7 +68,11 @@ extern float CUDATimeStepSCIARA2(CAFunction *func) {
 	//Make our 2D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread.
 	dim3 threads(16,16);
-	dim3 blocks (DIM/threads.x + 1,(DIM/threads.y + 1) * DIM);
+//	dim3 blocks (xDIM/threads.x + 1,(yDIM/threads.y + 1) * xDIM);
+	dim3 blocks (xDIM/threads.x + 1,(yDIM/threads.y + 1));
+
+	//dim3 threads(21,21); //They are +2 for shared memory padding!
+	//dim3 blocks (xDIM/20,yDIM/20);
 
 
 	cudaMemcpy(dev_pFlatGrid, func->lattice->pFlatGrid, noCells,
@@ -147,9 +152,10 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 
 	cudaEventRecord(start,0);
 
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;
+	int yDIM = func->lattice->yDIM;
 
-	size_t noCells = DIM * DIM * sizeof(unsigned int);
+	size_t noCells = xDIM * yDIM * sizeof(unsigned int);
 
 	//Might need to flatten the 2d array ormaybe try "int2" type
 
@@ -164,7 +170,7 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 
 	//Make our 2D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread.
-	dim3 blocks (DIM/20,DIM/20);
+	dim3 blocks (xDIM/20,yDIM/20);
 	dim3 threads(20,20);
 
 
@@ -247,12 +253,13 @@ extern float CUDATimeStep(CAFunction *func) {
 
 	cudaEventRecord(start,0);
 
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;
+	int yDIM = func->lattice->yDIM;
 	
 
 	//size_t noCells = DIM * DIM * sizeof(unsigned int);
 
-	size_t noCells = DIM * DIM * func->getCellSize();
+	size_t noCells = xDIM * yDIM * func->getCellSize();
 
 	//Might need to flatten the 2d array ormaybe try "int2" type
 
@@ -269,8 +276,9 @@ extern float CUDATimeStep(CAFunction *func) {
 
 	//Make our 2D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread.6
-	dim3 threads(21,21); //They are +2 for shared memory padding!
-	dim3 blocks (DIM/20,DIM/20);
+	//TODO why 1 here?
+	dim3 threads(22,22); //They are +2 for shared memory padding!
+	dim3 blocks (xDIM/20,yDIM/20);
 
 
 	//copy our two dynamic arrays 
@@ -329,9 +337,9 @@ extern float CUDATimeStep(CAFunction *func) {
 	unsigned int* newGrid = (unsigned int*) func->lattice->pFlatGrid;
 
 	//fix up states - normalize
-	for (int i = 0; i < DIM; ++i) {
-		for (int j = 0; j < DIM; ++j) {
-				newGrid[i * DIM +j] = newGrid[i * DIM +j] >> func->lattice->getNoBits();
+	for (int i = 0; i < xDIM; ++i) {
+		for (int j = 0; j < yDIM; ++j) {
+				newGrid[i * xDIM +j] = newGrid[i * xDIM + j] >> func->lattice->getNoBits();
 		}
 	}
 
@@ -364,9 +372,11 @@ extern float CUDATimeStep3D(CAFunction *func) {
 
 	cudaEventRecord(start,0);
 	
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;
+	int yDIM = func->lattice->yDIM;
+	int zDIM = func->lattice->zDIM;
 
-	size_t noCells = DIM * DIM * DIM * sizeof(unsigned int);
+	size_t noCells = xDIM * yDIM * zDIM * sizeof(unsigned int);
 	//Might need to flatten the 2d array ormaybe try "int2" type
 	
 	//TODO fix this name
@@ -411,7 +421,7 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	dim3 threads(8,8,8);
 	
 	//dim3 blocks((DIM/(threads.x)) * (DIM/(threads.z) ),DIM/(threads.y));
-	dim3 blocks((DIM/(threads.x - 2)) * (DIM/(threads.z- 2) ),DIM/(threads.y - 2));
+	dim3 blocks((xDIM/(threads.x - 2)) * (zDIM/(threads.z- 2) ),yDIM/(threads.y - 2));
 
 	//dim3 threads(16,16);
 	//dim3 blocks (DIM/threads.x + 1,(DIM/threads.y + 1) * DIM);
@@ -515,9 +525,11 @@ extern float CUDATimeStep3D(CAFunction *func) {
 
 	unsigned int* newGrid = (unsigned int*)func->lattice->pFlatGrid;
 
-	for (int i = 0; i < DIM * DIM; ++i) {
-		for (int j = 0; j < DIM; ++j) {
-				newGrid[i * DIM +j] = newGrid[i * DIM +j] >> func->lattice->getNoBits();
+	for (int i = 0; i < xDIM; ++i) {
+		for (int j = 0; j < yDIM ; ++j) {
+			for (int k = 0; k < zDIM; ++k) {
+				newGrid[(i * xDIM) + (k * zDIM * zDIM) +j] = newGrid[(i * xDIM) + (k * zDIM * zDIM) +j] >> func->lattice->getNoBits();
+			}
 		}
 	}
 

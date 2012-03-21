@@ -33,4 +33,27 @@ CellularAutomata::~CellularAutomata() {
 
 DLLExport void CellularAutomata::setCARule(AbstractCellularAutomata* ca) {
 	caRule = ca;
+
+	Generations* v = dynamic_cast<Generations*>(caRule);
+	OuterTotalistic* v2 = dynamic_cast<OuterTotalistic*>(caRule);
+	Generations3D* v3 = dynamic_cast<Generations3D*>(caRule);
+	SCIARA* v4 = dynamic_cast<SCIARA*>(caRule);
+	SCIARA2* v5 = dynamic_cast<SCIARA2*>(caRule);
+	
+	//No support for Runtime polymorphism inside the kernel.
+	if(v != 0) {
+		ruleName = "Generations";
+	}
+	else if (v2 != 0) {
+		ruleName = "OuterTotalistic";
+	}
+	else if(v3 != 0) {
+		ruleName = "Generations";
+	}
+	else if(v4 != 0) {
+		ruleName = "SCIARA";
+	}
+	else if(v5 != 0) {
+		ruleName = "SCIARA";
+	}
 }

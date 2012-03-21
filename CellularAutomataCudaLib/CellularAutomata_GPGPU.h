@@ -21,10 +21,6 @@
 #include "CellularAutomata.h"
 #include "CellularAutomata_launcher.cu"
 
-#include "OuterTotalistic.h"
-#include "Generations.h"
-#include "SCIARA.h"
-#include "SCIARA2.h"
 //#include "Generations3D.h"
 
 #define DLLExport __declspec(dllexport)

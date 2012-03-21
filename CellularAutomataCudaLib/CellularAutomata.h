@@ -21,12 +21,14 @@
 #include "OuterTotalistic.h"
 #include "Generations.h"
 #include "Generations3D.h"
+#include "SCIARA.h"
+#include "SCIARA2.h"
 
 #include <cuda_runtime.h>
 #include <cutil_inline.h>
 #include <cutil_gl_inline.h>
 #include <cuda_gl_interop.h>
-
+#include <stdlib.h>
 
 #define DLLExport __declspec(dllexport)
 
@@ -46,9 +48,12 @@ public:
 	DLLExport void setCARule(AbstractCellularAutomata* ca);
 	DLLExport void generate3DGrid(int,int);
 
+	DLLExport std::string getRuleName(){return ruleName;}
+
 protected :
 	//unsigned int *pFlatGrid;
 	AbstractCellularAutomata* caRule;
+	std::string ruleName; //Meta data about what class we're launching
 };
 
 #endif // CELLULARAUTOMATA_DLL_H

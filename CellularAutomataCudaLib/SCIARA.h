@@ -45,6 +45,18 @@ public:
 
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
+	//TODO move this to .cpp
+	__host__ virtual void setLattice(AbstractLattice* newLattice) {
+
+		if(newLattice == lattice)
+			return;
+
+		Abstract2DCA* new2DLattice = dynamic_cast<Abstract2DCA*>(newLattice);
+
+		lattice = new2DLattice;
+		
+	} 
+
 	__host__ virtual size_t getCellSize() {
 		return sizeof(Cell);
 	}
@@ -53,7 +65,7 @@ public:
 		
 		map<void**, size_t>* newMap = new map<void**, size_t>();
 
-		size_t gridMemSize = lattice->DIM * lattice->DIM * lattice->DIM * sizeof(unsigned int);
+		size_t gridMemSize = lattice->xDIM * lattice->yDIM * sizeof(unsigned int);
 
 		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
 
@@ -68,10 +80,10 @@ public:
 
 	max = 1000 * 100 * 800;
 	*/
-	__device__  int applyFunction(unsigned int* g_data, int x, int y, int DIM) { 
+	__device__  int applyFunction(unsigned int* g_data, int x, int y, int xDIM, int yDIM) { 
 
-		int xAltered = x * DIM;
-		int gridLoc = x * DIM + y;
+		int xAltered = x * xDIM;
+		int gridLoc = x * xDIM + y;
 
 		//cuda sm1.1 does not support recursion, shame.
 		int originalState = g_data[gridLoc]; 
@@ -122,7 +134,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
@@ -234,10 +246,10 @@ public:
 
 	}
 
-	__device__  int computethickness(unsigned int* g_data, int x, int y, int DIM) { 
+	__device__  int computethickness(unsigned int* g_data, int x, int y, int xDIM, int yDIM) { 
 		
-		int xAltered = x * DIM;
-		int gridLoc = x * DIM + y;
+		int xAltered = x * xDIM;
+		int gridLoc = x * yDIM + y;
 
 		//cuda sm1.1 does not support recursion, shame.
 		int originalState = g_data[gridLoc];
@@ -287,7 +299,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,DIM);
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
 		
 		Cell neighs[4];
 		//Populate neighbours

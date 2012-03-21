@@ -45,7 +45,7 @@ public :
 		return sizeof(unsigned int);
 	}
 
-	__device__ __host__ int applyFunction(void* g_data, int x, int y, int xDIM) { 
+	__device__ __host__ int applyFunction(void* g_data, int x, int y, int xDIM,int yDIM) { 
 		
 	//	int gridLoc = x * xDIM + y;
 	//	int state = g_data[gridLoc];

@@ -18,10 +18,10 @@
 #include "AbstractLattice.h"
 
 
-DLLExport AbstractLattice::AbstractLattice(unsigned int dim) : DIM(dim) {
+DLLExport AbstractLattice::AbstractLattice(unsigned int xDIM) : xDIM(xDIM) {
 
 }
 
-DLLExport AbstractLattice::AbstractLattice(unsigned int dim, void* grid) :  DIM(dim), pFlatGrid(grid) {
+DLLExport AbstractLattice::AbstractLattice(unsigned int xDIM, void* grid) :  xDIM(xDIM), pFlatGrid(grid) {
 
 }

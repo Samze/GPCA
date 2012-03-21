@@ -24,13 +24,16 @@ class Abstract3DCA : public AbstractLattice
 {
 public:
 	DLLExport Abstract3DCA(void);
-	DLLExport Abstract3DCA(int,int); //random data
+	DLLExport Abstract3DCA(int xDIM,int yDIM,int zDIM,int); //random data
 	DLLExport Abstract3DCA(void*, int);
 
 	DLLExport virtual ~Abstract3DCA(void); //Force use of derived constructor 
 	
 	__host__ virtual size_t size() const { return sizeof(this); }
 	
+	unsigned int yDIM;
+	unsigned int zDIM;
+
 	unsigned int *neighbourCount;
 
 	//Always better to use constants than defines (effective C++)

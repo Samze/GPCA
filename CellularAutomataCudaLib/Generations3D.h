@@ -20,6 +20,7 @@
 
 #include "device_launch_parameters.h"
 #include "AbstractCellularAutomata.h"
+#include "Totalistic.h"
 #include "Abstract3DCA.h"
 #include "cuda.h"
 #include "cuda_runtime.h"
@@ -28,29 +29,14 @@
 
 using namespace std;
 
-class Generations3D : public AbstractCellularAutomata {
+class Generations3D : public Totalistic {
 
 public :
 	DLLExport __device__ __host__ Generations3D() {}
 	DLLExport __device__ __host__ ~Generations3D() {}
-	
-    int* surviveNo;
-    int  surviveSize;
 
-	int* bornNo;
-    int bornSize;
 	
 	Abstract3DCA *lattice;
-	
-	__device__ __host__ void setSurviveNo(int* list, int size) {
-		surviveNo = list;
-		surviveSize = size;
-	}
-
-	__device__ __host__ void setBornNo(int* list, int size) {
-		bornNo = list;
-		bornSize = size;
-	}
 
 	__host__ virtual size_t getCellSize() {
 		return sizeof(unsigned int);
@@ -61,18 +47,29 @@ public :
 		
 		map<void**, size_t>* newMap = new map<void**, size_t>();
 
-		size_t gridMemSize = lattice->DIM * lattice->DIM * lattice->DIM * sizeof(unsigned int);
+		size_t gridMemSize = lattice->xDIM * lattice->yDIM * lattice->zDIM * sizeof(unsigned int);
 
 		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
 		newMap->insert(make_pair((void**)&bornNo,sizeof(int) * bornSize));
 		newMap->insert(make_pair((void**)&surviveNo,sizeof(int) * surviveSize));
-
 
 		return newMap;
 	}
 
 
 	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
+
+	//TODO move this to .cpp
+	__host__ virtual void setLattice(AbstractLattice* newLattice) {
+
+		if(newLattice == lattice)
+			return;
+
+		Abstract3DCA* new3DLattice = dynamic_cast<Abstract3DCA*>(newLattice);
+
+		lattice = new3DLattice;
+	
+	} 
 
 	__device__  int applyFunction(void* g_data, int x, int y, int z, int xDIM) { 
 

@@ -26,10 +26,13 @@ class Abstract2DCA : public AbstractLattice
 
 public:
 	DLLExport Abstract2DCA(void);
-	DLLExport Abstract2DCA(int,int); //random data
+	DLLExport Abstract2DCA(int xDIM,int yDIM,int); //random data
 	DLLExport Abstract2DCA(void*, int);
 
 	DLLExport virtual ~Abstract2DCA(void); //This was virtual, but this class isn't abstract..?
+
+	
+	unsigned int yDIM;
 	
 	//Currently not used..
 	__host__ virtual size_t size() const { return sizeof(this); }
@@ -39,14 +42,14 @@ public:
 	static const int MOORE = 8;
 	static const int VON_NEUMANN = 4;
 
-	__device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, int DIM) {
+	__device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, int xDIM, int yDIM) {
 
 		switch(neighbourhoodType) {
 		case MOORE:
-			getMooresNeighbourhood(neighbourStates,x,y,DIM);
+			getMooresNeighbourhood(neighbourStates,x,y,xDIM,yDIM);
 			break;
 		case VON_NEUMANN:
-			getVonNeumannNeighbourhood(neighbourStates,x,y,DIM);
+			getVonNeumannNeighbourhood(neighbourStates,x,y,xDIM,yDIM);
 			break;
 		default:
 			break;
@@ -56,14 +59,14 @@ public:
 private:
 
 	//probably a much better way to figure out the moores neighbourhood, populates a max of 8 neighbours
-	__device__ __host__ void getMooresNeighbourhood(int* neighbours,int x, int y, int DIM) {
+	__device__ __host__ void getMooresNeighbourhood(int* neighbours,int x, int y, int xDIM, int yDIM) {
 		
 
-		bool xBounds = (x / DIM) < DIM -1 ;
+		bool xBounds = (x / xDIM) < xDIM -1 ;
 
 		// [-1,-1]
 		if (x != 0 && y != 0)
-			neighbours[0] = x - DIM + y - 1;
+			neighbours[0] = x - yDIM + y - 1;
 
 		// [0,-1]
 		if ( y != 0)
@@ -71,34 +74,34 @@ private:
 
 		// [1,-1]
 		if (xBounds && y != 0 )
-			neighbours[2] = x + DIM + y - 1;
+			neighbours[2] = x + yDIM + y - 1;
 
 		// [-1,0]
 		if (x != 0)
-			neighbours[3] = x - DIM + y;
+			neighbours[3] = x - yDIM + y;
 
 		// [1,0]
 		if (xBounds)
-			neighbours[4] = x + DIM + y;
+			neighbours[4] = x + yDIM + y;
 
 		// [-1,1]
-		if (x != 0 && y != DIM - 1)
-			neighbours[5] = x - DIM + y + 1;
+		if (x != 0 && y != yDIM - 1)
+			neighbours[5] = x - yDIM + y + 1;
 
 		// [0,1]
-		if (y != DIM -1 )
+		if (y != yDIM -1 )
 			neighbours[6] = x + y + 1;
 
 		// [1,1]
-		if (xBounds && y != DIM - 1 )
-			neighbours[7] = x + DIM + y + 1;
+		if (xBounds && y != yDIM - 1 )
+			neighbours[7] = x + yDIM + y + 1;
 
 	}
 
 	//Populates a max of 4 neighbours
-	__device__ __host__ void getVonNeumannNeighbourhood(int* neighbours, int x, int y, int DIM) {
+	__device__ __host__ void getVonNeumannNeighbourhood(int* neighbours, int x, int y, int xDIM, int yDIM) {
 		
-		bool xBounds = (x / DIM) < DIM -1 ;
+		bool xBounds = (x / yDIM) < xDIM -1 ;
 
 		// [0,-1]
 		if ( y != 0){
@@ -107,16 +110,16 @@ private:
 
 		// [-1,0]
 		if (x != 0){
-			neighbours[1] = x - DIM + y;
+			neighbours[1] = x - yDIM + y;
 		}
 
 		// [1,0]
 		if (xBounds){
-			neighbours[2] = x + DIM + y;
+			neighbours[2] = x + yDIM + y;
 		}
 
 		// [0,1]
-		if (y != DIM - 1) {
+		if (y != yDIM - 1) {
 			neighbours[3] = x + y + 1;
 		}
 	}

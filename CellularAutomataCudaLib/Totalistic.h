@@ -18,12 +18,40 @@
 #pragma once
 
 #include "device_launch_parameters.h"
+#include "AbstractCellularAutomata.h"
+#include "cuda.h"
 
-class Totalistic {
+class Totalistic : public AbstractCellularAutomata{
 
 public:
 	__device__  __host__ Totalistic(void) { }
 	__device__  __host__ ~Totalistic(void) { }
+
+	DLLExport __host__ virtual void setStates(unsigned int states);
+
+	DLLExport __host__ int getNoStates() { return noStates;}
+
+	__host__ __device__ int setNewState(AbstractLattice* lattice, int newState, int oldState) {
+		return oldState | (newState << lattice->noBits);
+	}
+
+
+	int* surviveNo;
+    int  surviveSize;
+	
+	__device__ __host__ void setSurviveNo(int* list, int size) {
+		surviveNo = list;
+		surviveSize = size;
+	}
+
+	__device__ __host__ void setBornNo(int* list, int size) {
+		bornNo = list;
+		bornSize = size;
+	}
+	
+	int* bornNo;
+    int bornSize;
+
 
 	__device__ __host__  static unsigned int getLiveCellCount(int* neighbourhoodStates, int maxBits, int neighbourType) {
 
@@ -37,5 +65,9 @@ public:
 
 		return numLiveCells;
 	}
+
+	
+protected:
+	int noStates;
 };
 

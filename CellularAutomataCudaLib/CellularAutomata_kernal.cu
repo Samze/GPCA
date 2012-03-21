@@ -22,13 +22,15 @@ __global__ void kernal(CAFunction* func) {
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 
 
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;
+	int yDIM = func->lattice->yDIM;
+
 	void* grid = func->lattice->pFlatGrid;
 	
 
-	if( !(x > DIM) &&  !(y > DIM)) {//Guard against launching too many threads
+	if( !(x > xDIM) &&  !(y > yDIM)) {//Guard against launching too many threads
 			
-		func->applyFunction(grid,x,y,DIM);
+		func->applyFunction(grid,x,y,xDIM,yDIM);
 		//grid[x * DIM + y] = result;
 	}
 }
@@ -44,7 +46,8 @@ __global__ void kernalSharedMem(CAFunction* func) {
 	int bx = threadIdx.x - 1;
 	int by = threadIdx.y - 1;
 
-	int DIM = func->lattice->DIM;
+	//int xDIM = func->lattice->xDIM;
+	int yDIM = func->lattice->yDIM;
 
 	//22 needs to mirror how many threads launched in the kernal...can't use blockDim.x/y.
 	__shared__ unsigned int shar_data[22 * 22];
@@ -54,11 +57,12 @@ __global__ void kernalSharedMem(CAFunction* func) {
 	//2 because of the padding!
 	int xOrigin = (x - 1) - (blockIdx.x * 2);
 	int yOrigin = (y - 1) - (blockIdx.y * 2);
-
+	
+	int bounds = (blockDim.x * gridDim.y) - 1;
 	//checking bounds..
-	if(x != 0 && y != 0 && x != blockDim.x * gridDim.x && y != blockDim.y * gridDim.y) {
+	if(x != 0 && y != 0 && x != bounds && y != bounds) {
 
-		shar_data[threadIdx.x * blockDim.x + threadIdx.y] = grid[xOrigin * DIM + yOrigin];
+		shar_data[threadIdx.x * blockDim.x + threadIdx.y] = grid[xOrigin * yDIM + yOrigin];
 
 	} else {
 		shar_data[threadIdx.x * blockDim.x + threadIdx.y] = 0;
@@ -71,14 +75,12 @@ __global__ void kernalSharedMem(CAFunction* func) {
 	//We only want to update the state of cells in our 'inner area'
 	if(bx >= 0 && bx < 20 && by >= 0 && by < 20) {
 
-		func->applyFunction(shar_data,threadIdx.x,threadIdx.y,blockDim.x);
+		func->applyFunction(shar_data,threadIdx.x,threadIdx.y,blockDim.x,blockDim.y);
 		
 		//__syncthreads();
-		grid[xOrigin * DIM + yOrigin] = shar_data[threadIdx.x * blockDim.x + threadIdx.y];
+		grid[xOrigin * yDIM + yOrigin] = shar_data[threadIdx.x * blockDim.x + threadIdx.y];
 
 	}
-		
-
 }
 
 template <typename CAFunction>
@@ -86,11 +88,13 @@ __global__ void SCIARAKernal(CAFunction* func) {
 	
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
     int y = threadIdx.y + blockIdx.y * blockDim.y;
-	
-	int DIM = func->lattice->DIM;
+
+	int xDIM = func->lattice->xDIM;	
+	int yDIM = func->lattice->yDIM;
+
 	void* grid = func->lattice->pFlatGrid;
 
-	if( !(x > DIM) &&  !(y > DIM)) {//Guard against launching too many threads
+	if( !(x > xDIM) &&  !(y > yDIM)) {//Guard against launching too many threads
 	//set new cell state.
 	
 		//__syncthreads();
@@ -112,50 +116,59 @@ __global__ void SCIARAKernal2(CAFunction* func) {
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 	
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;	
+	int yDIM = func->lattice->yDIM;
+
 	void* grid = func->lattice->pFlatGrid;
 
-	if( !(x > DIM) &&  !(y > DIM)) {//Guard against launching too many threads
+	if( !(x > xDIM) &&  !(y > yDIM)) {//Guard against launching too many threads
 	//set new cell state.
 	
 		//__syncthreads();
 
-		func->applyFunction(grid,x,y,DIM);
+		func->applyFunction(grid,x,y,xDIM,yDIM);
 	
 		//__syncthreads();
 		
-		func->computethickness(grid,x,y,DIM);
+		func->computethickness(grid,x,y,xDIM,yDIM);
 
 		//grid[(x * DIM) + y] = (976562499 << func->lattice->noBits);
 		//g_data[(x * *DIM) + y] = (x * *DIM) + y;
 	}
 }
 
+
 template <typename CAFunction>
 __global__ void kernal3D(CAFunction* func) {
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;	
+	int yDIM = func->lattice->yDIM;
+	int zDIM = func->lattice->zDIM;
+
 	void* grid = (unsigned int*)func->lattice->pFlatGrid;
 
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
 	
-	int slice = DIM/blockDim.y + 1;
+	int slice = xDIM/blockDim.y + 1;
 
 	int y = (blockIdx.y % slice) * blockDim.y + threadIdx.y;
 	int z = blockIdx.y/slice;
 
 	//TODO fix coding style inconsistancy.
-	if( x >= DIM ||  y >= DIM || z >= DIM) //Guard against launching too many threads
+	if( x >= xDIM ||  y >= yDIM || z >= zDIM) //Guard against launching too many threads
 		return;
 	
 
 //	grid[(z * DIM * DIM) + (x * DIM) + y] = func->applyFunction(grid,x,y,z,DIM);
-	func->applyFunction(grid,x,y,z,DIM);
+	func->applyFunction(grid,x,y,z,xDIM);
 	
 }
 
 template <typename CAFunction>
 __global__ void kernal3DTest(CAFunction* func) {
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;	
+	int yDIM = func->lattice->yDIM;
+	int zDIM = func->lattice->zDIM;
+
 	unsigned int* grid = (unsigned int*)func->lattice->pFlatGrid;
 
 	int blockSlice = blockIdx.x / gridDim.y;
@@ -169,16 +182,19 @@ __global__ void kernal3DTest(CAFunction* func) {
 
 
 	//TODO fix coding style inconsistancy.
-	if( x >= DIM ||  y >= DIM || z >= DIM) //Guard against launching too many threads
+	if( x >= xDIM ||  y >= yDIM || z >= zDIM) //Guard against launching too many threads
 		return;
 
-	func->applyFunction(grid,x,y,z,DIM);
+	func->applyFunction(grid,x,y,z,xDIM);
 }
 
 
 template <typename CAFunction>
 __global__ void kernal3DTestShared(CAFunction* func) {
-	int DIM = func->lattice->DIM;
+	int xDIM = func->lattice->xDIM;	
+	int yDIM = func->lattice->yDIM;
+	int zDIM = func->lattice->zDIM;
+
 	unsigned int* grid = (unsigned int*)func->lattice->pFlatGrid;
 
 	int blockSlice = blockIdx.x / gridDim.y;
@@ -198,10 +214,10 @@ __global__ void kernal3DTestShared(CAFunction* func) {
 
 	int sharPos = (threadIdx.z * blockDim.z * blockDim.z) + (threadIdx.x * blockDim.x) + threadIdx.y;	
 
-	int globPos = (zOrigin * DIM * DIM) + (xOrigin * DIM) + yOrigin;
+	int globPos = (zOrigin * zDIM * zDIM) + (xOrigin * xDIM) + yOrigin;
 
 	int bounds = (blockDim.x * gridDim.y) - 1;
-
+	
 	////checking bounds..
 	if(x != 0 && y != 0 && z != 0 && x !=  bounds && y != bounds  && z != bounds) {
 		shar_data[sharPos] = grid[globPos];
@@ -210,7 +226,6 @@ __global__ void kernal3DTestShared(CAFunction* func) {
 		shar_data[sharPos] = 0;
 	}
 	
-
 	__syncthreads();
 
 	////We only want to update the state of cells in our 'inner area'
@@ -220,5 +235,4 @@ __global__ void kernal3DTestShared(CAFunction* func) {
 		grid[globPos] = shar_data[sharPos];
 
 	}
-
 }
