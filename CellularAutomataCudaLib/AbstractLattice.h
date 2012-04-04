@@ -30,7 +30,7 @@ public:
 	DLLExport AbstractLattice(unsigned int dim);
 	DLLExport AbstractLattice(unsigned int dim, void* grid);
 
-	DLLExport virtual ~AbstractLattice(void) {}
+	DLLExport virtual ~AbstractLattice(void);
 	
 	__host__ __device__ int getNoBits() { return noBits;}
 
@@ -45,6 +45,7 @@ public:
 	int maxBits;
 
 	int neighbourhoodType;
+	int noElements;
 	
 	
 	//__device__ __host__ virtual void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int gLocation);

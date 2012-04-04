@@ -15,20 +15,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Abstract2DCA.h"
+#include "Lattice2D.h"
 #include <cstdlib>
 
 
-Abstract2DCA::Abstract2DCA(void)
+Lattice2D::Lattice2D(void)
 {
 	
 }
 
-DLLExport Abstract2DCA::Abstract2DCA(int xDIM, int newYDIM, int range): AbstractLattice(xDIM) {
+Lattice2D::Lattice2D(void* grid, int sizeX, int sizeY) : AbstractLattice(sizeX,pFlatGrid)  {
+
+	yDIM = sizeY;
+
+	noElements = xDIM * yDIM;
+	pFlatGrid = grid;
+}
+
+DLLExport Lattice2D::Lattice2D(int xDIM, int newYDIM, int range): AbstractLattice(xDIM) {
 	//initialize array based on dim with random values
 	yDIM = newYDIM;
 
-	pFlatGrid = new unsigned int[xDIM * yDIM];
+	noElements = xDIM * yDIM;
+
+	pFlatGrid = new unsigned int[noElements];
 
 	unsigned int* intGrid = (unsigned int*)pFlatGrid;
 
@@ -52,11 +62,11 @@ DLLExport Abstract2DCA::Abstract2DCA(int xDIM, int newYDIM, int range): Abstract
 	}
 }
 
-DLLExport Abstract2DCA::Abstract2DCA(void* pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
+DLLExport Lattice2D::Lattice2D(void* pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
 
 }
 
 
-Abstract2DCA::~Abstract2DCA(void)
+Lattice2D::~Lattice2D(void)
 {
 }

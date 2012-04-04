@@ -20,14 +20,14 @@
 #include "device_launch_parameters.h"
 #include "AbstractLattice.h"
 
-class Abstract3DCA : public AbstractLattice
+class Lattice3D : public AbstractLattice
 {
 public:
-	DLLExport Abstract3DCA(void);
-	DLLExport Abstract3DCA(int xDIM,int yDIM,int zDIM,int); //random data
-	DLLExport Abstract3DCA(void*, int);
+	DLLExport Lattice3D(void);
+	DLLExport Lattice3D(int xDIM,int yDIM,int zDIM,int); //random data
+	DLLExport Lattice3D(void*, int xSize, int ySize, int zSize);
 
-	DLLExport virtual ~Abstract3DCA(void); //Force use of derived constructor 
+	DLLExport virtual ~Lattice3D(void); //Force use of derived constructor 
 	
 	__host__ virtual size_t size() const { return sizeof(this); }
 	

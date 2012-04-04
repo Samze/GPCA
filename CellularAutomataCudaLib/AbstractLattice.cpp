@@ -25,3 +25,7 @@ DLLExport AbstractLattice::AbstractLattice(unsigned int xDIM) : xDIM(xDIM) {
 DLLExport AbstractLattice::AbstractLattice(unsigned int xDIM, void* grid) :  xDIM(xDIM), pFlatGrid(grid) {
 
 }
+	
+DLLExport AbstractLattice::~AbstractLattice(void){
+	delete[] pFlatGrid;
+}

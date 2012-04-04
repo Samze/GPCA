@@ -21,15 +21,16 @@
 #include "AbstractLattice.h"
 
 
-class Abstract2DCA : public AbstractLattice
+class Lattice2D : public AbstractLattice
 {
 
 public:
-	DLLExport Abstract2DCA(void);
-	DLLExport Abstract2DCA(int xDIM,int yDIM,int); //random data
-	DLLExport Abstract2DCA(void*, int);
+	DLLExport Lattice2D(void);
+	DLLExport Lattice2D(void* grid, int sizeX, int sizeY);
+	DLLExport Lattice2D(int xDIM,int yDIM,int); //random data
+	DLLExport Lattice2D(void*, int);
 
-	DLLExport virtual ~Abstract2DCA(void); //This was virtual, but this class isn't abstract..?
+	DLLExport virtual ~Lattice2D(void); //This was virtual, but this class isn't abstract..?
 
 	
 	unsigned int yDIM;

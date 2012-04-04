@@ -83,35 +83,9 @@ __global__ void kernalSharedMem(CAFunction* func) {
 	}
 }
 
+
 template <typename CAFunction>
 __global__ void SCIARAKernal(CAFunction* func) {
-	
-	int x = threadIdx.x + blockIdx.x * blockDim.x; 
-    int y = threadIdx.y + blockIdx.y * blockDim.y;
-
-	int xDIM = func->lattice->xDIM;	
-	int yDIM = func->lattice->yDIM;
-
-	void* grid = func->lattice->pFlatGrid;
-
-	if( !(x > xDIM) &&  !(y > yDIM)) {//Guard against launching too many threads
-	//set new cell state.
-	
-		//__syncthreads();
-
-		//grid[(x * DIM) + y] = func->applyFunction(grid,x,y,DIM);
-	
-		//__syncthreads();
-		
-		//grid[(x * DIM) + y] = func->computethickness(grid,x,y,DIM);
-
-		//grid[(x * DIM) + y] = (976562499 << func->lattice->noBits);
-		//g_data[(x * *DIM) + y] = (x * *DIM) + y;
-	}
-}
-
-template <typename CAFunction>
-__global__ void SCIARAKernal2(CAFunction* func) {
 	
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
     int y = threadIdx.y + blockIdx.y * blockDim.y;
@@ -130,7 +104,7 @@ __global__ void SCIARAKernal2(CAFunction* func) {
 	
 		//__syncthreads();
 		
-		func->computethickness(grid,x,y,xDIM,yDIM);
+		//func->computethickness(grid,x,y,xDIM,yDIM);
 
 		//grid[(x * DIM) + y] = (976562499 << func->lattice->noBits);
 		//g_data[(x * *DIM) + y] = (x * *DIM) + y;

@@ -21,7 +21,7 @@
 #include "device_launch_parameters.h"
 #include "AbstractCellularAutomata.h"
 #include "Totalistic.h"
-#include "Abstract3DCA.h"
+#include "Lattice3D.h"
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include <map>
@@ -33,10 +33,10 @@ class Generations3D : public Totalistic {
 
 public :
 	DLLExport __device__ __host__ Generations3D() {}
-	DLLExport __device__ __host__ ~Generations3D() {}
+	DLLExport __device__ __host__ ~Generations3D() { delete lattice;}
 
 	
-	Abstract3DCA *lattice;
+	Lattice3D *lattice;
 
 	__host__ virtual size_t getCellSize() {
 		return sizeof(unsigned int);
@@ -65,7 +65,7 @@ public :
 		if(newLattice == lattice)
 			return;
 
-		Abstract3DCA* new3DLattice = dynamic_cast<Abstract3DCA*>(newLattice);
+		Lattice3D* new3DLattice = dynamic_cast<Lattice3D*>(newLattice);
 
 		lattice = new3DLattice;
 	

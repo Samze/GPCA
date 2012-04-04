@@ -15,28 +15,32 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Abstract3DCA.h"
+#include "Lattice3D.h"
 #include <cstdlib>
 
 
-Abstract3DCA::Abstract3DCA(void)
+Lattice3D::Lattice3D(void)
 {
 }
 
 
-Abstract3DCA::~Abstract3DCA(void)
+Lattice3D::~Lattice3D(void)
 {
+
 }
 
 //This will create a unsigned integer array of states. 
-DLLExport Abstract3DCA::Abstract3DCA(int xDIM,int newYDIM, int newZDIM,  int range): AbstractLattice(xDIM) {
+DLLExport Lattice3D::Lattice3D(int xDIM,int newYDIM, int newZDIM,  int range): AbstractLattice(xDIM) {
 	//initialize array based on dim with random values
 
 	yDIM = newYDIM;
 	zDIM = newZDIM;
-	pFlatGrid = new unsigned int[xDIM * yDIM * zDIM];
 
-	neighbourCount = new unsigned int[xDIM * yDIM * zDIM];
+	noElements = xDIM * yDIM * zDIM;
+
+	pFlatGrid = new unsigned int[noElements];
+
+	neighbourCount = new unsigned int[noElements];
 
 	unsigned int* intGrid = (unsigned int*)pFlatGrid;
 
@@ -62,6 +66,12 @@ DLLExport Abstract3DCA::Abstract3DCA(int xDIM,int newYDIM, int newZDIM,  int ran
 	}
 }
 
-DLLExport Abstract3DCA::Abstract3DCA(void *pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
+DLLExport Lattice3D::Lattice3D(void *pFlatGrid, int xSize, int ySize, int zSize) : AbstractLattice(xSize,pFlatGrid)  {
 
+	yDIM = ySize;
+	zDIM = zSize;
+
+	noElements = xSize * ySize * zSize;
+
+	neighbourCount = new unsigned int[noElements];
 }

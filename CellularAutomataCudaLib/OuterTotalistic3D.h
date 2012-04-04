@@ -15,39 +15,39 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OUTER_TOTALISTIC_H_
-#define OUTER_TOTALISTIC_H_
+#ifndef OUTERTOTALISTIC3D_H
+#define OUTERTOTALISTIC3D_H
 
 #include "device_launch_parameters.h"
 #include "AbstractCellularAutomata.h"
-#include "Lattice2D.h"
 #include "Totalistic.h"
+#include "Lattice3D.h"
 #include "cuda.h"
+#include "cuda_runtime.h"
 #include <map>
 #include <vector>
 
 using namespace std;
 
-class OuterTotalistic : public Totalistic {
+class OuterTotalistic3D : public Totalistic {
 
 public :
-	DLLExport __device__ __host__ OuterTotalistic() {}
-	DLLExport __device__ __host__ ~OuterTotalistic() {delete lattice;}
+	DLLExport __device__ __host__ OuterTotalistic3D() {}
+	DLLExport __device__ __host__ ~OuterTotalistic3D() { delete lattice;}
 
-	__host__ __device__ struct Cell {
-	  unsigned int state;
-	};
+	
+	Lattice3D *lattice;
 
-	Lattice2D *lattice;
-	
-	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
-	
+	__host__ virtual size_t getCellSize() {
+		return sizeof(unsigned int);
+	}
+
 	//These return a list of dynamic pointers to be put onto the GPU.
 	__host__ map<void**, size_t>* getDynamicArrays() {
 		
 		map<void**, size_t>* newMap = new map<void**, size_t>();
 
-		size_t gridMemSize = lattice->xDIM * lattice->yDIM * sizeof(unsigned int);
+		size_t gridMemSize = lattice->xDIM * lattice->yDIM * lattice->zDIM * sizeof(unsigned int);
 
 		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
 		newMap->insert(make_pair((void**)&bornNo,sizeof(int) * bornSize));
@@ -56,9 +56,8 @@ public :
 		return newMap;
 	}
 
-	__host__ virtual size_t getCellSize() {
-		return sizeof(unsigned int);
-	}
+
+	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 
 	//TODO move this to .cpp
 	__host__ virtual void setLattice(AbstractLattice* newLattice) {
@@ -66,41 +65,56 @@ public :
 		if(newLattice == lattice)
 			return;
 
-		Lattice2D* new2DLattice = dynamic_cast<Lattice2D*>(newLattice);
+		Lattice3D* new3DLattice = dynamic_cast<Lattice3D*>(newLattice);
 
-		lattice = new2DLattice;
-		
+		lattice = new3DLattice;
+	
 	} 
 
-	__device__ __host__ int applyFunction(void* g_data, int x, int y, int xDIM,int yDIM) { 
-		
-		int xAltered = x * yDIM;
-		int gridLoc = x * yDIM + y;
+	__device__  int applyFunction(void* g_data, int x, int y, int z, int xDIM) { 
+
+		int xAltered = x * xDIM;
+		int zAltered = z * xDIM * xDIM;
 
 		unsigned int* cellData = (unsigned int*)g_data;
+		
+		int gridLoc = xAltered + zAltered + y;
 
 		int state = cellData[gridLoc];
+	//	//We want know about neighbours even if we're not using them to set the next state, this is 
+	//	//so they can not be rendered by the viewer. To speed up the processing, move this to the else
 
-		int newState = state;
-		
-		int neighbourhoodStates[8];
-	
-		//set as -1 by default.
-		for(int i = 0; i < 8; i++) {
+		int neighbourhoodStates[26];//= {-1};
+	//
+	//	//set as -1 by default.
+		//TODO Add unrolling here!
+		for(int i = 0; i < 26; i++) {
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
 
-		//Should probably move this code to TOTALISTIC CLASS, but it might slow it down..
-		int liveCells = 0;//getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
+	//	//Populate neighbours states.
+		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,zAltered,xDIM);
 
-		for(int i = 0; i < lattice->neighbourhoodType; ++i) {
-			if(cellData[neighbourhoodStates[i]] != -1) {
-				if((cellData[neighbourhoodStates[i]] & lattice->maxBits) == 1) //This cell's state is alive.
-					++liveCells;
+
+		//populate our neighbours with their cell state values 
+		//TODO Add unrolling here!
+		for(int i= 0; i <26; i++) {
+			if(neighbourhoodStates[i] != -1) {
+				neighbourhoodStates[i] = cellData[neighbourhoodStates[i]];
 			}
 		}
+
+		unsigned int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
+
+	//	//int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM);
+
+	//	//This is for culling of cubes surrounded on all sides.
+		
+		//lattice->neighbourCount[xAltered + y + zAltered] = liveCells;
+		
+
+		unsigned int newState = state;
 
 		for (int i = 0; i < surviveSize; i++) {
 			if (state == 1 && liveCells == surviveNo[i]) newState = setNewState(lattice,1,state);
@@ -109,7 +123,8 @@ public :
 		for (int i = 0; i < bornSize; ++i) {		
 			if (state == 0 && liveCells == bornNo[i]) newState = setNewState(lattice,1,state);
 		}
-
+		
+		//Potential bug here, could writing corrupt our data ??
 		cellData[gridLoc] = newState;
 	}
 };

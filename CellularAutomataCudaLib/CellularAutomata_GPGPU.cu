@@ -19,6 +19,7 @@
 
 CellularAutomata_GPGPU::CellularAutomata_GPGPU(){ 
 
+	stepNumber = 0;
 }
 
 
@@ -31,10 +32,13 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 	
 	Generations* v = dynamic_cast<Generations*>(caRule);
 	OuterTotalistic* v2 = dynamic_cast<OuterTotalistic*>(caRule);
-	Generations3D* v3 = dynamic_cast<Generations3D*>(caRule);
-	SCIARA* v4 = dynamic_cast<SCIARA*>(caRule);
-	SCIARA2* v5 = dynamic_cast<SCIARA2*>(caRule);
+	OuterTotalistic3D* v3 = dynamic_cast<OuterTotalistic3D*>(caRule);
+	Generations3D* v4 = dynamic_cast<Generations3D*>(caRule);
+	SCIARA* v5 = dynamic_cast<SCIARA*>(caRule);
+	SCIARAThickness* v6 = dynamic_cast<SCIARAThickness*>(caRule);
 	
+	stepNumber++;
+
 	//No support for Runtime polymorphism inside the kernel.
 	if(v != 0) {
 		return CUDATimeStep(v);
@@ -46,10 +50,13 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 		return CUDATimeStep3D(v3);
 	}
 	else if(v4 != 0) {
-		return CUDATimeStepSCIARA(v4);
+		return CUDATimeStep3D(v4);
 	}
 	else if(v5 != 0) {
-		return CUDATimeStepSCIARA2(v5);
+		return CUDATimeStepSCIARA(v5);
+	}
+	else if(v6 != 0) {
+		return CUDATimeStepSCIARA(v6);
 	}
 	return -1;
 }

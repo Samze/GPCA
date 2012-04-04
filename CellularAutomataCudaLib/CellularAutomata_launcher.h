@@ -5,8 +5,6 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include <vector_types.h>
-#include "Abstract2DCA.h"
-#include "Abstract3DCA.h"
 #include <map>
 #include <vector>
 

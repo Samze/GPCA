@@ -19,7 +19,7 @@
 #include <device_launch_parameters.h>
 #include <device_functions.h>
 #include "abstractcellularautomata.h"
-#include "Abstract2DCA.h"
+#include "Lattice2D.h"
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include <map>
@@ -27,23 +27,27 @@
 
 using namespace std;
 
-class SCIARA :
+class SCIARA:
 	public AbstractCellularAutomata
 {
 public:
 	DLLExport __device__ __host__ SCIARA(void);
 	DLLExport __device__ __host__  ~SCIARA(void);
 
-	Abstract2DCA *lattice;
 
 	//For now this must be signed to cope with -1 (no neighbour values)
-	__device__ struct Cell {
-	  int altitude;
-	  int thickness;
-	  int outflow[4];
+	__host__ __device__ struct Cell {
+	  float altitude;
+	  float thickness;
+	  float outflow[4];
 	};
-
-	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
+	
+	Lattice2D *lattice;
+	//Cell* newGrid;
+	
+	__host__ virtual size_t getCellSize() {
+		return sizeof(Cell);
+	}
 
 	//TODO move this to .cpp
 	__host__ virtual void setLattice(AbstractLattice* newLattice) {
@@ -51,23 +55,24 @@ public:
 		if(newLattice == lattice)
 			return;
 
-		Abstract2DCA* new2DLattice = dynamic_cast<Abstract2DCA*>(newLattice);
+		Lattice2D* new2DLattice = dynamic_cast<Lattice2D*>(newLattice);
 
 		lattice = new2DLattice;
-		
+
+		//newGrid = new SCIARA::Cell[lattice->xDIM * lattice->yDIM];
 	} 
 
-	__host__ virtual size_t getCellSize() {
-		return sizeof(Cell);
-	}
+	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
+
 
 	__host__ map<void**, size_t>* getDynamicArrays() {
 		
 		map<void**, size_t>* newMap = new map<void**, size_t>();
 
-		size_t gridMemSize = lattice->xDIM * lattice->yDIM * sizeof(unsigned int);
+		size_t gridMemSize = lattice->xDIM * lattice->yDIM * sizeof(Cell);
 
 		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
+		//newMap->insert(make_pair((void**)&newGrid, gridMemSize));
 
 		return newMap;
 	}
@@ -80,57 +85,21 @@ public:
 
 	max = 1000 * 100 * 800;
 	*/
-	__device__  int applyFunction(unsigned int* g_data, int x, int y, int xDIM, int yDIM) { 
+	__device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
 
-		int xAltered = x * xDIM;
-		int gridLoc = x * xDIM + y;
+		int xAltered = x * yDIM;
+		int gridLoc = x * yDIM + y;
 
-		//cuda sm1.1 does not support recursion, shame.
-		int originalState = g_data[gridLoc]; 
-		unsigned int state = originalState;
-		unsigned int total = 100 * 25 * 25 * 25 * 25 * 25;
+		Cell* cellGrid = (Cell*)lattice->pFlatGrid;
 
-		int altitude = state / (total/100);
-		
-		total = total/100;
-		state = state - (altitude * total);
+		Cell centerCell = cellGrid[gridLoc]; 
 
-		int thickness = state / (total/25);
-
-		total = total/25;
-		state = state - (thickness * total);
-
-		int flowN = state / (total/25);
-
-		total = total/25;
-		state = state - (flowN * total);
-
-		int flowE = state / (total/25);
-
-		total = total/25;
-		state = state - (flowE * total);
-
-		int flowS = state / (total/25);
-
-		total = total/25;
-		state = state - (flowS * total);
-
-		int flowW = state / (total/25);
-
-		Cell center;
-		center.altitude = altitude;
-		center.thickness = thickness;
-		center.outflow[0] = flowN;
-		center.outflow[1] = flowE;
-		center.outflow[2] = flowS;
-		center.outflow[3] = flowW;
-		
 		Cell neighs[4];
 
 		int neighbourhoodStates[4];
-	//
-	//	//set as -1 by default.
-		for(int i = 0; i < 8; i++) {
+
+		//	//set as -1 by default.
+		for(int i = 0; i < 4; i++) {
 			neighbourhoodStates[i] = -1; 
 		}
 
@@ -138,47 +107,13 @@ public:
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
-			int state = neighbourhoodStates[i];
-			
-			if (state != -1) {
-				unsigned int total = 100 * 25 * 25 * 25 * 25 * 25;
+			int address = neighbourhoodStates[i];
 
-				int neighAltitude = state / (total/100);
-		
-				total = total/100;
-				state = state - (neighAltitude * total);
-
-				int neighThickness = state / (total/25);
-
-				total = total/25;
-				state = state - (neighThickness * total);
-
-				int neighFlowN = state / (total/25);
-
-				total = total/25;
-				state = state - (neighFlowN * total);
-
-				int neighFlowE = state / (total/25);
-
-				total = total/25;
-				state = state - (neighFlowE * total);
-
-				int neighFlowS = state / (total/25);
-
-				total = total/25;
-				state = state - (neighFlowS * total);
-
-				int neighFlowW = state / (total/25);
-
-				neighs[i].altitude = neighAltitude;
-				neighs[i].thickness = neighThickness;
-				neighs[i].outflow[0] = neighFlowN;
-				neighs[i].outflow[1] = neighFlowE;
-				neighs[i].outflow[2] = neighFlowS;
-				neighs[i].outflow[3] = neighFlowW;
+			if (address != -1) {
+				neighs[i] =  cellGrid[address];
 			}
 			else {
-				neighs[i].altitude = 100; //set to max height
+				neighs[i].altitude = 10000; //set to max height
 				neighs[i].thickness = 0;
 				neighs[i].outflow[0] = 0;
 				neighs[i].outflow[1] = 0;
@@ -186,6 +121,9 @@ public:
 				neighs[i].outflow[3] = 0;
 			}
 		}
+
+
+		//Update outflows
 
 		bool elim[5] = {false,false,false,false,false};
 		//Mobile part of center
@@ -197,10 +135,10 @@ public:
 
 		int k,i;
 		bool again;
-	
-		m = thickness;
 
-		Z[0] = altitude;
+		m = centerCell.thickness;
+
+		Z[0] = centerCell.altitude;
 
 		for(int i = 1; i < 5; i++) {
 			Z[i] = neighs[i-1].altitude + neighs[i-1].thickness;
@@ -231,149 +169,18 @@ public:
 
 		for (i = 1; i < 5; i++) {
 			if (elim[i] == false) {
-				center.outflow[i-1] = (average - Z[i]) * 0.7;
+				centerCell.outflow[i-1] = (average - Z[i]) * 0.7;
 			}
 			else {
-				center.outflow[i-1] = 0;
+				centerCell.outflow[i-1] = 0;
 			}
+
+			//updateCell
+			cellGrid[gridLoc].outflow[0] = centerCell.outflow[0];
+			cellGrid[gridLoc].outflow[1] = centerCell.outflow[1];
+			cellGrid[gridLoc].outflow[2] = centerCell.outflow[2];
+			cellGrid[gridLoc].outflow[3] = centerCell.outflow[3];
 		}
-
-		total = 100 * 25 * 25 * 25 * 25 * 25;
-		
-
-		unsigned int newState2 =  (center.altitude * (total/100)) + (center.thickness * (total/ (100 * 25)))  + (center.outflow[0]  * (total/ (100 * 25 * 25))) + (center.outflow[1] * (total/ (100 * 25 * 25 * 25))) + (center.outflow[2] * (total/ (100 * 25 * 25 * 25 * 25))) + (center.outflow[3]  * (total/ (100 * 25 * 25 * 25 * 25 * 25)));
-		return newState2;//setNewState(lattice,newState,originalState);
-
 	}
-
-	__device__  int computethickness(unsigned int* g_data, int x, int y, int xDIM, int yDIM) { 
-		
-		int xAltered = x * xDIM;
-		int gridLoc = x * yDIM + y;
-
-		//cuda sm1.1 does not support recursion, shame.
-		int originalState = g_data[gridLoc];
-		int state = originalState;
-		int total = 100 * 25 * 25 * 25 * 25 * 25;
-
-		int altitude = state / (total/100);
-		
-		total = total/100;
-		state = state - (altitude * total);
-
-		int thickness = state / (total/25);
-
-		total = total/25;
-		state = state - (thickness * total);
-
-		int flowN = state / (total/25);
-
-		total = total/25;
-		state = state - (flowN * total);
-
-		int flowE = state / (total/25);
-
-		total = total/25;
-		state = state - (flowE * total);
-
-		int flowS = state / (total/25);
-
-		total = total/25;
-		state = state - (flowS * total);
-
-		int flowW = state / (total/25);
-
-		Cell center;
-		center.altitude = altitude;
-		center.thickness = thickness;
-		center.outflow[0] = flowN;
-		center.outflow[1] = flowE;
-		center.outflow[2] = flowS;
-		center.outflow[3] = flowW;
-
-
-		int neighbourhoodStates[4];
-	//
-	//	//set as -1 by default.
-		for(int i = 0; i < 8; i++) {
-			neighbourhoodStates[i] = -1; 
-		}
-
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
-		
-		Cell neighs[4];
-		//Populate neighbours
-
-		for(int i = 0; i < 4; i++) {
-			unsigned int state = neighbourhoodStates[i];
-
-			if (state != -1) {
-
-				unsigned int total = 100 * 25 * 25 * 25 * 25 * 25;
-
-				int neighAltitude = state / (total/100);
-		
-				total = total/100;
-				state = state - (neighAltitude * total);
-
-				int neighThickness = state / (total/25);
-
-				total = total/25;
-				state = state - (neighThickness * total);
-
-				int neighFlowN = state / (total/25);
-
-				total = total/25;
-				state = state - (neighFlowN * total);
-
-				int neighFlowE = state / (total/25);
-
-				total = total/25;
-				state = state - (neighFlowE * total);
-
-				int neighFlowS = state / (total/25);
-
-				total = total/25;
-				state = state - (neighFlowS * total);
-
-				int neighFlowW = state / (total/25);
-
-				neighs[i].altitude = neighAltitude;
-				neighs[i].thickness = neighThickness;
-				neighs[i].outflow[0] = neighFlowN;
-				neighs[i].outflow[1] = neighFlowE;
-				neighs[i].outflow[2] = neighFlowS;
-				neighs[i].outflow[3] = neighFlowW;
-			}
-			else {
-				neighs[i].altitude = 100; //set to max height
-				neighs[i].thickness = 0;
-				neighs[i].outflow[0] = 0;
-				neighs[i].outflow[1] = 0;
-				neighs[i].outflow[2] = 0;
-				neighs[i].outflow[3] = 0;
-			}
-
-		}
-
-		int new_thickness;
-		int i;
-
-		int outflows = 0;
-
-		new_thickness = center.thickness;
-
-		for(i=0; i < 4; i++) {
-			new_thickness = new_thickness + center.outflow[i] + neighs[i].outflow[3-i];
-			outflows += center.outflow[i];
-		}
-		center.thickness = new_thickness;
-
-		total = 100 * 25 * 25 * 25 * 25 * 25;
-
-		unsigned int newState2 =  (center.altitude * (total/100)) + (center.thickness * (total/ (100 * 25)))  + (center.outflow[0]  * (total/ (100 * 25 * 25))) + (center.outflow[1] * (total/ (100 * 25 * 25 * 25))) + (center.outflow[2] * (total/ (100 * 25 * 25 * 25 * 25))) + (center.outflow[3]  * (total/ (100 * 25 * 25 * 25 * 25 * 25)));
-		return newState2;//setNewState(lattice,newState,originalState);
-	}
-
 };
 

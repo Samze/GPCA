@@ -19,10 +19,11 @@
 #define CELLULARAUTOMATA_DLL_H
 
 #include "OuterTotalistic.h"
+#include "OuterTotalistic3D.h"
 #include "Generations.h"
 #include "Generations3D.h"
 #include "SCIARA.h"
-#include "SCIARA2.h"
+#include "SCIARAThickness.h"
 
 #include <cuda_runtime.h>
 #include <cutil_inline.h>
@@ -49,6 +50,8 @@ public:
 	DLLExport void generate3DGrid(int,int);
 
 	DLLExport std::string getRuleName(){return ruleName;}
+
+	int stepNumber;
 
 protected :
 	//unsigned int *pFlatGrid;
