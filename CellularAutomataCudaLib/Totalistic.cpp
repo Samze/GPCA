@@ -17,6 +17,14 @@
 
 #include "Totalistic.h"
 
+Totalistic::Totalistic(){
+
+}
+
+Totalistic::~Totalistic() { 
+	delete[] bornNo;
+	delete[] surviveNo;
+}
 
 void Totalistic::setStates(unsigned int states) {
 
@@ -29,15 +37,15 @@ void Totalistic::setStates(unsigned int states) {
 
 		states = states - 1;
 
-		lattice->noBits = 0;
+		lattice->setNoBits(0);
 		while (states != 0) { 
 			states = states >> 1; 
-			++lattice->noBits;
+			lattice->setNoBits(lattice->getNoBits() + 1);
 		}
 
-		lattice->maxBits = 1;
+		lattice->setMaxBits(1);
 
-		for (int i = 1; i < lattice->noBits; i++) {
-			lattice->maxBits = (lattice->maxBits << 1) + 1;
+		for (int i = 1; i < lattice->getNoBits(); i++) {
+			lattice->setMaxBits((lattice->getMaxBits() << 1) + 1);
 		}
 }

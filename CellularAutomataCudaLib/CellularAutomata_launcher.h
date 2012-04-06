@@ -10,7 +10,6 @@
 
 using namespace std;
 
-void test();
 vector<void*>* setupDynamicArrays(const map<void**, size_t> &myMap);
 const char* errorCheck();
 

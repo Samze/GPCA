@@ -2,8 +2,6 @@
 #include "CellularAutomata_launcher.h"
 
 
-void test() {
-}
 
 vector<void*>* setupDynamicArrays(const map<void**, size_t> &myMap) {
 

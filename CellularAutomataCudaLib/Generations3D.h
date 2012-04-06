@@ -32,44 +32,19 @@ using namespace std;
 class Generations3D : public Totalistic {
 
 public :
-	DLLExport __device__ __host__ Generations3D() {}
-	DLLExport __device__ __host__ ~Generations3D() { delete lattice;}
+	DLLExport __device__ __host__ Generations3D();
+	DLLExport __device__ __host__ ~Generations3D();
 
-	
+
+	//This is only public for access by Kernel...
 	Lattice3D *lattice;
 
-	__host__ virtual size_t getCellSize() {
-		return sizeof(unsigned int);
-	}
-
-	//These return a list of dynamic pointers to be put onto the GPU.
-	__host__ map<void**, size_t>* getDynamicArrays() {
-		
-		map<void**, size_t>* newMap = new map<void**, size_t>();
-
-		size_t gridMemSize = lattice->xDIM * lattice->yDIM * lattice->zDIM * sizeof(unsigned int);
-
-		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
-		newMap->insert(make_pair((void**)&bornNo,sizeof(int) * bornSize));
-		newMap->insert(make_pair((void**)&surviveNo,sizeof(int) * surviveSize));
-
-		return newMap;
-	}
-
-
-	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
-
-	//TODO move this to .cpp
-	__host__ virtual void setLattice(AbstractLattice* newLattice) {
-
-		if(newLattice == lattice)
-			return;
-
-		Lattice3D* new3DLattice = dynamic_cast<Lattice3D*>(newLattice);
-
-		lattice = new3DLattice;
+public:
+	__host__ virtual size_t getCellSize();
+	__host__ map<void**, size_t>* Generations3D::getDynamicArrays();
+	__host__ virtual void setLattice(AbstractLattice* newLattice);
 	
-	} 
+	__host__ __device__ Lattice3D* getLattice() { return lattice;}
 
 	__device__  int applyFunction(void* g_data, int x, int y, int z, int xDIM) { 
 
@@ -105,7 +80,7 @@ public :
 			}
 		}
 
-		unsigned int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
+		unsigned int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->getMaxBits(),lattice->getNeighbourhoodType());
 
 	//	//int liveCells = getNeighbourhood(g_data, xAltered, y, zAltered, xDIM);
 

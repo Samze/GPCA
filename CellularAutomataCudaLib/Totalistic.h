@@ -24,15 +24,15 @@
 class Totalistic : public AbstractCellularAutomata{
 
 public:
-	__device__  __host__ Totalistic(void) { }
-	__device__  __host__ ~Totalistic(void) { }
-
+	DLLExport __device__  __host__ Totalistic();
+	DLLExport __device__  __host__ virtual ~Totalistic();
+	 
 	DLLExport __host__ virtual void setStates(unsigned int states);
 
 	DLLExport __host__ int getNoStates() { return noStates;}
 
 	__host__ __device__ int setNewState(AbstractLattice* lattice, int newState, int oldState) {
-		return oldState | (newState << lattice->noBits);
+		return oldState | (newState << lattice->getNoBits());
 	}
 
 

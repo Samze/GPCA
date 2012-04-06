@@ -31,46 +31,27 @@ using namespace std;
 class OuterTotalistic : public Totalistic {
 
 public :
-	DLLExport __device__ __host__ OuterTotalistic() {}
-	DLLExport __device__ __host__ ~OuterTotalistic() {delete lattice;}
+	DLLExport __device__ __host__ OuterTotalistic();
+	DLLExport __device__ __host__ ~OuterTotalistic();
 
+
+	//This is only public for access by Kernel...
+	Lattice2D *lattice;
+
+public:
 	__host__ __device__ struct Cell {
 	  unsigned int state;
 	};
 
-	Lattice2D *lattice;
-	
-	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
 	
 	//These return a list of dynamic pointers to be put onto the GPU.
-	__host__ map<void**, size_t>* getDynamicArrays() {
-		
-		map<void**, size_t>* newMap = new map<void**, size_t>();
-
-		size_t gridMemSize = lattice->xDIM * lattice->yDIM * sizeof(unsigned int);
-
-		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
-		newMap->insert(make_pair((void**)&bornNo,sizeof(int) * bornSize));
-		newMap->insert(make_pair((void**)&surviveNo,sizeof(int) * surviveSize));
-
-		return newMap;
+	__host__ map<void**, size_t>* getDynamicArrays();
+	__host__ virtual size_t getCellSize();
+	__host__ virtual void setLattice(AbstractLattice* newLattice);
+	
+	__host__ __device__ Lattice2D* getLattice() { 
+		return lattice;
 	}
-
-	__host__ virtual size_t getCellSize() {
-		return sizeof(unsigned int);
-	}
-
-	//TODO move this to .cpp
-	__host__ virtual void setLattice(AbstractLattice* newLattice) {
-
-		if(newLattice == lattice)
-			return;
-
-		Lattice2D* new2DLattice = dynamic_cast<Lattice2D*>(newLattice);
-
-		lattice = new2DLattice;
-		
-	} 
 
 	__device__ __host__ int applyFunction(void* g_data, int x, int y, int xDIM,int yDIM) { 
 		
@@ -95,9 +76,9 @@ public :
 		//Should probably move this code to TOTALISTIC CLASS, but it might slow it down..
 		int liveCells = 0;//getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
 
-		for(int i = 0; i < lattice->neighbourhoodType; ++i) {
+		for(int i = 0; i < lattice->getNeighbourhoodType(); ++i) {
 			if(cellData[neighbourhoodStates[i]] != -1) {
-				if((cellData[neighbourhoodStates[i]] & lattice->maxBits) == 1) //This cell's state is alive.
+				if((cellData[neighbourhoodStates[i]] & lattice->getMaxBits()) == 1) //This cell's state is alive.
 					++liveCells;
 			}
 		}

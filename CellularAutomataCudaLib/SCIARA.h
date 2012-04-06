@@ -34,7 +34,10 @@ public:
 	DLLExport __device__ __host__ SCIARA(void);
 	DLLExport __device__ __host__  ~SCIARA(void);
 
+	//This is only public for access by Kernel...
+	Lattice2D *lattice;
 
+public:
 	//For now this must be signed to cope with -1 (no neighbour values)
 	__host__ __device__ struct Cell {
 	  float altitude;
@@ -42,55 +45,24 @@ public:
 	  float outflow[4];
 	};
 	
-	Lattice2D *lattice;
 	//Cell* newGrid;
 	
-	__host__ virtual size_t getCellSize() {
-		return sizeof(Cell);
+	__host__ virtual size_t getCellSize();
+
+	__host__ virtual void setLattice(AbstractLattice* newLattice);
+
+	__host__ __device__ Lattice2D* getLattice() { 
+		return lattice;
 	}
 
-	//TODO move this to .cpp
-	__host__ virtual void setLattice(AbstractLattice* newLattice) {
+	__host__ map<void**, size_t>* getDynamicArrays();
 
-		if(newLattice == lattice)
-			return;
-
-		Lattice2D* new2DLattice = dynamic_cast<Lattice2D*>(newLattice);
-
-		lattice = new2DLattice;
-
-		//newGrid = new SCIARA::Cell[lattice->xDIM * lattice->yDIM];
-	} 
-
-	__host__ __device__ virtual AbstractLattice* getLattice() { return lattice;}
-
-
-	__host__ map<void**, size_t>* getDynamicArrays() {
-		
-		map<void**, size_t>* newMap = new map<void**, size_t>();
-
-		size_t gridMemSize = lattice->xDIM * lattice->yDIM * sizeof(Cell);
-
-		newMap->insert(make_pair((void**)&lattice->pFlatGrid, gridMemSize));
-		//newMap->insert(make_pair((void**)&newGrid, gridMemSize));
-
-		return newMap;
-	}
-
-	/* State information.
-
-	z = 0-1000;
-	h = 0-100;
-	f[4] = 0-100 (400)
-
-	max = 1000 * 100 * 800;
-	*/
 	__device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
 
 		int xAltered = x * yDIM;
 		int gridLoc = x * yDIM + y;
 
-		Cell* cellGrid = (Cell*)lattice->pFlatGrid;
+		Cell* cellGrid = (Cell*)g_data;
 
 		Cell centerCell = cellGrid[gridLoc]; 
 

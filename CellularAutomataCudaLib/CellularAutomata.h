@@ -39,7 +39,7 @@ class CellularAutomata
 public:
 
 	DLLExport CellularAutomata();
-	DLLExport ~CellularAutomata();
+	DLLExport virtual ~CellularAutomata();
 	
 	DLLExport virtual float nextTimeStep() = 0;
 	

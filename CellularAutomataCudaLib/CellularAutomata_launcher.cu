@@ -45,8 +45,8 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 
 	cudaEventRecord(start,0);
 
-	int xDIM = func->lattice->xDIM;
-	int yDIM = func->lattice->yDIM;
+	int xDIM = func->getLattice()->getXSize();
+	int yDIM = func->getLattice()->yDIM;
 
 	size_t noCells = xDIM * yDIM * func->getCellSize();
 
@@ -93,13 +93,13 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 		++count;
 	}
 
-	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
+	cudaMemcpy(dev_lattice, func->getLattice(), sizeLattice,
 		cudaMemcpyHostToDevice);
 
 	//We want to temporarily hold our pointers so we can reassign them after the object copy...
 
 
-	tempLattice = func->lattice;
+	tempLattice = func->getLattice();
 	//reassign our pointers so we know where we put our dynamic arrays
 	func->lattice = dev_lattice;
 
@@ -133,6 +133,10 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 
 		++count;
 	}
+	
+	//Delete our lists
+	delete hostDynamicMap;
+	delete devicePointers;
 
 	//Reassign our dynamic array pointers
 	func->lattice = tempLattice;
@@ -178,7 +182,7 @@ extern float CUDATimeStep(CAFunction *func) {
 
 	cudaEventRecord(start,0);
 
-	int xDIM = func->lattice->xDIM;
+	int xDIM = func->lattice->getXSize();
 	int yDIM = func->lattice->yDIM;
 	
 
@@ -210,12 +214,6 @@ extern float CUDATimeStep(CAFunction *func) {
 	dim3 threads(22,22); //They are +2 for shared memory padding!
 	dim3 blocks (xDIM/20 + 1,yDIM/20 + 1);
 
-
-	//copy our two dynamic arrays 
-	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
-		cudaMemcpyHostToDevice);
-
-
 	//We want to temporarily hold our pointers so we can reassign them after the object copy...
 	int count = 0;
 
@@ -229,10 +227,11 @@ extern float CUDATimeStep(CAFunction *func) {
 		++count;
 	}
 
-	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
+	//copy our two dynamic arrays 
+	cudaMemcpy(dev_lattice, func->getLattice(), sizeLattice,
 		cudaMemcpyHostToDevice);
 
-	tempLattice = func->lattice;
+	tempLattice = func->getLattice();
 	func->lattice = dev_lattice;
 
 	
@@ -266,6 +265,10 @@ extern float CUDATimeStep(CAFunction *func) {
 		++count;
 	}
 
+	//Delete our lists
+	delete hostDynamicMap;
+	delete devicePointers;
+
 	func->lattice = tempLattice;
 
 	//STOP : processing done
@@ -278,12 +281,14 @@ extern float CUDATimeStep(CAFunction *func) {
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
 
-	unsigned int* newGrid = (unsigned int*) func->lattice->pFlatGrid;
+	unsigned int* newGrid = (unsigned int*) func->getLattice()->pFlatGrid;
+
+
 
 	//fix up states - normalize
 	for (int i = 0; i < xDIM; ++i) {
 		for (int j = 0; j < yDIM; ++j) {
-				newGrid[i * xDIM +j] = newGrid[i * xDIM + j] >> func->lattice->getNoBits();
+				newGrid[i * xDIM +j] = newGrid[i * xDIM + j] >> func->getLattice()->getNoBits();
 		}
 	}
 
@@ -313,9 +318,9 @@ extern float CUDATimeStep3D(CAFunction *func) {
 
 	cudaEventRecord(start,0);
 	
-	int xDIM = func->lattice->xDIM;
-	int yDIM = func->lattice->yDIM;
-	int zDIM = func->lattice->zDIM;
+	int xDIM = func->getLattice()->getXSize();
+	int yDIM = func->getLattice()->yDIM;
+	int zDIM = func->getLattice()->zDIM;
 
 	size_t noCells = xDIM * yDIM * zDIM * sizeof(unsigned int);
 	//Might need to flatten the 2d array ormaybe try "int2" type
@@ -375,10 +380,10 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	//cudaMemcpy(dev_pFlatGrid, func->lattice->pFlatGrid, noCells,
 	//	cudaMemcpyHostToDevice);
 	
-	tempNeigh = func->lattice->neighbourCount;
+	tempNeigh = func->getLattice()->neighbourCount;
 /*
 	func->lattice->pFlatGrid = dev_pFlatGrid;*/
-	func->lattice->neighbourCount = dev_neighCount;
+	func->getLattice()->neighbourCount = dev_neighCount;
 
 	//reassign our pointers so we know where we put our dynamic arrays
 	int count = 0;
@@ -393,10 +398,10 @@ extern float CUDATimeStep3D(CAFunction *func) {
 		++count;
 	}
 
-	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
+	cudaMemcpy(dev_lattice, func->getLattice(), sizeLattice,
 		cudaMemcpyHostToDevice);
 	
-	tempLattice = func->lattice;
+	tempLattice = func->getLattice();
 	func->lattice = dev_lattice;
 	//func->surviveNo = dev_survive;
 	//func->bornNo = dev_born;
@@ -442,12 +447,16 @@ extern float CUDATimeStep3D(CAFunction *func) {
 		++count;
 	}
 	
+	//Delete our lists
+	delete hostDynamicMap;
+	delete devicePointers;
+
 	//func->surviveNo = tempSurv;
 	//func->bornNo = tempBorn;
-
+	
 	func->lattice = tempLattice;
 	//func->lattice->pFlatGrid = tempGrid;
-	func->lattice->neighbourCount = tempNeigh;
+	func->getLattice()->neighbourCount = tempNeigh;
 
 	//STOP : processing done
 	cudaEventRecord(stop,0);
@@ -462,12 +471,12 @@ extern float CUDATimeStep3D(CAFunction *func) {
 
 	//fix up states - normalize, this could be another kernal really..
 
-	unsigned int* newGrid = (unsigned int*)func->lattice->pFlatGrid;
+	unsigned int* newGrid = (unsigned int*)func->getLattice()->getGrid();
 
 	for (int i = 0; i < xDIM; ++i) {
 		for (int j = 0; j < yDIM ; ++j) {
 			for (int k = 0; k < zDIM; ++k) {
-				newGrid[(i * xDIM) + (k * zDIM * zDIM) +j] = newGrid[(i * xDIM) + (k * zDIM * zDIM) +j] >> func->lattice->getNoBits();
+				newGrid[(i * xDIM) + (k * zDIM * zDIM) +j] = newGrid[(i * xDIM) + (k * zDIM * zDIM) +j] >> func->getLattice()->getNoBits();
 			}
 		}
 	}
@@ -479,182 +488,182 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	return elapsedTime;
 }
 
-template<typename CAFunction>
-extern float CUDATimeStep3DOLD(CAFunction *func) {
-
-	//unsigned int *dev_pFlatGrid; //Pointers to device allocated memory
-	unsigned int* dev_neighCount;
-	CAFunction *dev_func;
-	Lattice3D *dev_lattice;
-
-	unsigned int* tempNeigh;
-	Lattice3D *tempLattice;
-
-	cudaEvent_t start,stop; //Events for timings
-
-	//START: Record duration of GPGPU processing
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-
-	cudaEventRecord(start,0);
-	
-	int DIM = func->lattice->DIM;
-
-	size_t noCells = DIM * DIM * DIM * sizeof(unsigned int);
-	//Might need to flatten the 2d array ormaybe try "int2" type
-	
-	//TODO fix this name
-	size_t size = sizeof(CAFunction);
-
-	map<void**, size_t>* hostDynamicMap = func->getDynamicArrays();
-
-	map<void**, size_t>::const_iterator iter;
-	
-	map<void**,void*> tempPointers;
-
-	for(iter = hostDynamicMap->begin(); iter != hostDynamicMap->end(); ++iter) {
-
-		void** tempPointer = (*iter).first;
-		void* dataPointer = *(*iter).first;
-		tempPointers.insert(make_pair(tempPointer,dataPointer));
-	}
-
-	vector<void*>* devicePointers = setupDynamicArrays(*hostDynamicMap);
-
-	//TODO Add this 
-	//size_t sizeLattice = func->lattice->size();
-	size_t sizeLattice = sizeof(Abstract3DCA);
-
-
-	//Allocate suitable size memory on device
-//	cudaMalloc((void**) &dev_pFlatGrid, noCells);
-	cudaMalloc((void**) &dev_func, size);
-	cudaMalloc((void**) &dev_lattice, sizeLattice);
-
-	//cudaMalloc((void**) &dev_born, sizeof(int) * func->bornSize);
-	//cudaMalloc((void**) &dev_survive, sizeof(int) * func->surviveSize);
-	cudaMalloc((void**) &dev_neighCount, noCells);
-
-
-	//Do our specific setup, such as copying any dynamic arrays we may require.
-	//func->setup();
-
-	//Make our 3D grid of blocks & threads (DIM/No of threads)
-	//One pixel is one thread.
-	/*dim3 blocks (1,1,1);
-	dim3 threads(8,8,8);*/
-	
-	dim3 threads(16,16);
-	dim3 blocks (DIM/threads.x + 1,(DIM/threads.y + 1) * DIM);
-
-	//copy our two dynamic arrays 
-	//cudaMemcpy(dev_born, func->bornNo, sizeof(int) * func->bornSize,
-	//	cudaMemcpyHostToDevice);
-	//cudaMemcpy(dev_survive, func->surviveNo, sizeof(int) * func->surviveSize,
-	//	cudaMemcpyHostToDevice);
-	//cudaMemcpy(dev_pFlatGrid, func->lattice->pFlatGrid, noCells,
-	//	cudaMemcpyHostToDevice);
-	
-	tempNeigh = func->lattice->neighbourCount;
-/*
-	func->lattice->pFlatGrid = dev_pFlatGrid;*/
-	func->lattice->neighbourCount = dev_neighCount;
-
-	//reassign our pointers so we know where we put our dynamic arrays
-	int count = 0;
-
-	map<void**, void*>::const_iterator iterTP;
-	
-	for(iterTP = tempPointers.begin(); iterTP != tempPointers.end(); ++iterTP) {
-
-		void** tmpPointer = (*iterTP).first;
-
-		*tmpPointer = devicePointers->at(count);
-		++count;
-	}
-
-	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
-		cudaMemcpyHostToDevice);
-	
-	tempLattice = func->lattice;
-	func->lattice = dev_lattice;
-	//func->surviveNo = dev_survive;
-	//func->bornNo = dev_born;
-
-	//We want to temporarily hold our pointers so we can reassign them after the object copy...
-	//tempBorn = func->bornNo;
-	//tempSurv = func->surviveNo;
-
-
-	//Copy our memory from Host to Device
-	cudaMemcpy(dev_func, func,size,
-		cudaMemcpyHostToDevice);
-
-	kernal3D<<<blocks,threads>>>(dev_func);
-
-
-
-	//Because of our func currently holding a device pointer, we need to use a
-	//temp pointer.
-	cudaMemcpy(tempNeigh, dev_neighCount, noCells,
-		cudaMemcpyDeviceToHost);
-
-
-	//Reassign our dynamic pointers
-	count = 0;
-
-	for(iterTP = tempPointers.begin(); iterTP != tempPointers.end(); ++iterTP) {
-
-		void** pointerLoc = (*iterTP).first;
-		void* tmpPointer = (*iterTP).second;
-		
-		size_t size = hostDynamicMap->at(pointerLoc);
-
-		cudaMemcpy(tmpPointer, devicePointers->at(count), size,
-			cudaMemcpyDeviceToHost);
-
-		*pointerLoc = tmpPointer;
-		//Copy back to host
-
-
-		//pointerLoc = &tmpPointer;
-
-		cudaFree(devicePointers->at(count));
-
-		++count;
-	}
-	
-	//func->surviveNo = tempSurv;
-	//func->bornNo = tempBorn;
-
-	func->lattice = tempLattice;
-	//func->lattice->pFlatGrid = tempGrid;
-	func->lattice->neighbourCount = tempNeigh;
-
-	//STOP : processing done
-	cudaEventRecord(stop,0);
-	cudaEventSynchronize(stop);
-
-	float elapsedTime = 0;
-	cudaEventElapsedTime(&elapsedTime, start, stop);
-
-	
-	cudaEventDestroy(start);
-	cudaEventDestroy(stop);
-
-	//fix up states - normalize, this could be another kernal really..
-
-	unsigned int* newGrid = (unsigned int*)func->lattice->pFlatGrid;
-
-	for (int i = 0; i < DIM * DIM; ++i) {
-		for (int j = 0; j < DIM; ++j) {
-				//newGrid[i * DIM +j] = newGrid[i * DIM +j] >> func->lattice->getNoBits();
-		}
-	}
-
-	//Free memory on Device
-	cudaFree(dev_func);
-	cudaFree(dev_neighCount);
-
-	return elapsedTime;
-}
+//template<typename CAFunction>
+//extern float CUDATimeStep3DOLD(CAFunction *func) {
+//
+//	//unsigned int *dev_pFlatGrid; //Pointers to device allocated memory
+//	unsigned int* dev_neighCount;
+//	CAFunction *dev_func;
+//	Lattice3D *dev_lattice;
+//
+//	unsigned int* tempNeigh;
+//	Lattice3D *tempLattice;
+//
+//	cudaEvent_t start,stop; //Events for timings
+//
+//	//START: Record duration of GPGPU processing
+//	cudaEventCreate(&start);
+//	cudaEventCreate(&stop);
+//
+//	cudaEventRecord(start,0);
+//	
+//	int DIM = func->lattice->DIM;
+//
+//	size_t noCells = DIM * DIM * DIM * sizeof(unsigned int);
+//	//Might need to flatten the 2d array ormaybe try "int2" type
+//	
+//	//TODO fix this name
+//	size_t size = sizeof(CAFunction);
+//
+//	map<void**, size_t>* hostDynamicMap = func->getDynamicArrays();
+//
+//	map<void**, size_t>::const_iterator iter;
+//	
+//	map<void**,void*> tempPointers;
+//
+//	for(iter = hostDynamicMap->begin(); iter != hostDynamicMap->end(); ++iter) {
+//
+//		void** tempPointer = (*iter).first;
+//		void* dataPointer = *(*iter).first;
+//		tempPointers.insert(make_pair(tempPointer,dataPointer));
+//	}
+//
+//	vector<void*>* devicePointers = setupDynamicArrays(*hostDynamicMap);
+//
+//	//TODO Add this 
+//	//size_t sizeLattice = func->lattice->size();
+//	size_t sizeLattice = sizeof(Abstract3DCA);
+//
+//
+//	//Allocate suitable size memory on device
+////	cudaMalloc((void**) &dev_pFlatGrid, noCells);
+//	cudaMalloc((void**) &dev_func, size);
+//	cudaMalloc((void**) &dev_lattice, sizeLattice);
+//
+//	//cudaMalloc((void**) &dev_born, sizeof(int) * func->bornSize);
+//	//cudaMalloc((void**) &dev_survive, sizeof(int) * func->surviveSize);
+//	cudaMalloc((void**) &dev_neighCount, noCells);
+//
+//
+//	//Do our specific setup, such as copying any dynamic arrays we may require.
+//	//func->setup();
+//
+//	//Make our 3D grid of blocks & threads (DIM/No of threads)
+//	//One pixel is one thread.
+//	/*dim3 blocks (1,1,1);
+//	dim3 threads(8,8,8);*/
+//	
+//	dim3 threads(16,16);
+//	dim3 blocks (DIM/threads.x + 1,(DIM/threads.y + 1) * DIM);
+//
+//	//copy our two dynamic arrays 
+//	//cudaMemcpy(dev_born, func->bornNo, sizeof(int) * func->bornSize,
+//	//	cudaMemcpyHostToDevice);
+//	//cudaMemcpy(dev_survive, func->surviveNo, sizeof(int) * func->surviveSize,
+//	//	cudaMemcpyHostToDevice);
+//	//cudaMemcpy(dev_pFlatGrid, func->lattice->pFlatGrid, noCells,
+//	//	cudaMemcpyHostToDevice);
+//	
+//	tempNeigh = func->lattice->neighbourCount;
+///*
+//	func->lattice->pFlatGrid = dev_pFlatGrid;*/
+//	func->lattice->neighbourCount = dev_neighCount;
+//
+//	//reassign our pointers so we know where we put our dynamic arrays
+//	int count = 0;
+//
+//	map<void**, void*>::const_iterator iterTP;
+//	
+//	for(iterTP = tempPointers.begin(); iterTP != tempPointers.end(); ++iterTP) {
+//
+//		void** tmpPointer = (*iterTP).first;
+//
+//		*tmpPointer = devicePointers->at(count);
+//		++count;
+//	}
+//
+//	cudaMemcpy(dev_lattice, func->lattice, sizeLattice,
+//		cudaMemcpyHostToDevice);
+//	
+//	tempLattice = func->lattice;
+//	func->lattice = dev_lattice;
+//	//func->surviveNo = dev_survive;
+//	//func->bornNo = dev_born;
+//
+//	//We want to temporarily hold our pointers so we can reassign them after the object copy...
+//	//tempBorn = func->bornNo;
+//	//tempSurv = func->surviveNo;
+//
+//
+//	//Copy our memory from Host to Device
+//	cudaMemcpy(dev_func, func,size,
+//		cudaMemcpyHostToDevice);
+//
+//	kernal3D<<<blocks,threads>>>(dev_func);
+//
+//
+//
+//	//Because of our func currently holding a device pointer, we need to use a
+//	//temp pointer.
+//	cudaMemcpy(tempNeigh, dev_neighCount, noCells,
+//		cudaMemcpyDeviceToHost);
+//
+//
+//	//Reassign our dynamic pointers
+//	count = 0;
+//
+//	for(iterTP = tempPointers.begin(); iterTP != tempPointers.end(); ++iterTP) {
+//
+//		void** pointerLoc = (*iterTP).first;
+//		void* tmpPointer = (*iterTP).second;
+//		
+//		size_t size = hostDynamicMap->at(pointerLoc);
+//
+//		cudaMemcpy(tmpPointer, devicePointers->at(count), size,
+//			cudaMemcpyDeviceToHost);
+//
+//		*pointerLoc = tmpPointer;
+//		//Copy back to host
+//
+//
+//		//pointerLoc = &tmpPointer;
+//
+//		cudaFree(devicePointers->at(count));
+//
+//		++count;
+//	}
+//	
+//	//func->surviveNo = tempSurv;
+//	//func->bornNo = tempBorn;
+//
+//	func->lattice = tempLattice;
+//	//func->lattice->pFlatGrid = tempGrid;
+//	func->lattice->neighbourCount = tempNeigh;
+//
+//	//STOP : processing done
+//	cudaEventRecord(stop,0);
+//	cudaEventSynchronize(stop);
+//
+//	float elapsedTime = 0;
+//	cudaEventElapsedTime(&elapsedTime, start, stop);
+//
+//	
+//	cudaEventDestroy(start);
+//	cudaEventDestroy(stop);
+//
+//	//fix up states - normalize, this could be another kernal really..
+//
+//	unsigned int* newGrid = (unsigned int*)func->lattice->pFlatGrid;
+//
+//	for (int i = 0; i < DIM * DIM; ++i) {
+//		for (int j = 0; j < DIM; ++j) {
+//				//newGrid[i * DIM +j] = newGrid[i * DIM +j] >> func->lattice->getNoBits();
+//		}
+//	}
+//
+//	//Free memory on Device
+//	cudaFree(dev_func);
+//	cudaFree(dev_neighCount);
+//
+//	return elapsedTime;
+//}

@@ -32,20 +32,45 @@ public:
 
 	DLLExport virtual ~AbstractLattice(void);
 	
-	__host__ __device__ int getNoBits() { return noBits;}
-
 	__host__ virtual size_t size() const = 0;
 	
-	void *pFlatGrid;
+	__host__ __device__ int getNoBits() { 
+		return noBits;
+	}
+
+	__host__ __device__ unsigned int getXSize(){
+		return xDIM;
+	}
+	__host__ __device__ unsigned int getMaxBits(){
+		return maxBits;
+	}
+
+	DLLExport __host__ void setMaxBits(unsigned int);
+	DLLExport __host__ void setNoBits(unsigned int);
+	DLLExport __host__ void setNeighbourhoodType(int);
+	DLLExport __host__ void setNoElements(unsigned int);
+	DLLExport __host__ void setXSize(unsigned int);
+
+	__host__ __device__ int getNeighbourhoodType(){
+		return neighbourhoodType;
+	}
+	__host__ __device__ unsigned int getNoElements(){
+		return noElements;
+	}
+	
+	__host__ __device__ void* getGrid(){
+		return pFlatGrid;
+	}
+
+
 	unsigned int xDIM;
+	void *pFlatGrid;
 
-
-public:
-	int noBits;
-	int maxBits;
-
+protected:
+	unsigned int noBits;
+	unsigned int maxBits;
 	int neighbourhoodType;
-	int noElements;
+	unsigned int noElements;
 	
 	
 	//__device__ __host__ virtual void getNeighbourhood(int* neighbourStates, unsigned int* g_data, int gLocation);

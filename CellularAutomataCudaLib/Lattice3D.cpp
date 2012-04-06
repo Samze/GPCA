@@ -26,7 +26,7 @@ Lattice3D::Lattice3D(void)
 
 Lattice3D::~Lattice3D(void)
 {
-
+	delete[] neighbourCount;
 }
 
 //This will create a unsigned integer array of states. 

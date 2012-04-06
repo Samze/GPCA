@@ -22,10 +22,10 @@ __global__ void kernal(CAFunction* func) {
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 
 
-	int xDIM = func->lattice->xDIM;
+	int xDIM = func->lattice->getXSize();
 	int yDIM = func->lattice->yDIM;
 
-	void* grid = func->lattice->pFlatGrid;
+	void* grid = func->lattice->getGrid();
 	
 
 	if( !(x > xDIM) &&  !(y > yDIM)) {//Guard against launching too many threads
@@ -52,7 +52,7 @@ __global__ void kernalSharedMem(CAFunction* func) {
 	//22 needs to mirror how many threads launched in the kernal...can't use blockDim.x/y.
 	__shared__ unsigned int shar_data[22 * 22];
 
-	unsigned int* grid = (unsigned int*)func->lattice->pFlatGrid;
+	unsigned int* grid = (unsigned int*)func->lattice->getGrid();
 	
 	//2 because of the padding!
 	int xOrigin = (x - 1) - (blockIdx.x * 2);
@@ -90,10 +90,10 @@ __global__ void SCIARAKernal(CAFunction* func) {
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
     int y = threadIdx.y + blockIdx.y * blockDim.y;
 	
-	int xDIM = func->lattice->xDIM;	
+	int xDIM = func->lattice->getXSize();	
 	int yDIM = func->lattice->yDIM;
 
-	void* grid = func->lattice->pFlatGrid;
+	void* grid =  func->lattice->getGrid();
 
 	if( !(x > xDIM) &&  !(y > yDIM)) {//Guard against launching too many threads
 	//set new cell state.
@@ -114,11 +114,11 @@ __global__ void SCIARAKernal(CAFunction* func) {
 
 template <typename CAFunction>
 __global__ void kernal3D(CAFunction* func) {
-	int xDIM = func->lattice->xDIM;	
+	int xDIM = func->lattice->getXSize();	
 	int yDIM = func->lattice->yDIM;
 	int zDIM = func->lattice->zDIM;
 
-	void* grid = (unsigned int*)func->lattice->pFlatGrid;
+	void* grid = (unsigned int*)func->lattice->getGrid();
 
 	int x = threadIdx.x + blockIdx.x * blockDim.x; 
 	
@@ -139,11 +139,11 @@ __global__ void kernal3D(CAFunction* func) {
 
 template <typename CAFunction>
 __global__ void kernal3DTest(CAFunction* func) {
-	int xDIM = func->lattice->xDIM;	
+	int xDIM = func->lattice->getXSize();	
 	int yDIM = func->lattice->yDIM;
 	int zDIM = func->lattice->zDIM;
 
-	unsigned int* grid = (unsigned int*)func->lattice->pFlatGrid;
+	unsigned int* grid = (unsigned int*)func->lattice->getGrid();
 
 	int blockSlice = blockIdx.x / gridDim.y;
 	
@@ -165,11 +165,11 @@ __global__ void kernal3DTest(CAFunction* func) {
 
 template <typename CAFunction>
 __global__ void kernal3DTestShared(CAFunction* func) {
-	int xDIM = func->lattice->xDIM;	
+	int xDIM = func->lattice->getXSize();	
 	int yDIM = func->lattice->yDIM;
 	int zDIM = func->lattice->zDIM;
 
-	unsigned int* grid = (unsigned int*)func->lattice->pFlatGrid;
+	unsigned int* grid = (unsigned int*)func->lattice->getGrid();
 
 	int blockSlice = blockIdx.x / gridDim.y;
 

@@ -1,18 +1,19 @@
-#include "SCIARA.h"
+#include "SCIARAThickness.h"
 
 
-SCIARA::SCIARA(void)
+SCIARAThickness::SCIARAThickness(void)
 {
 	lattice = NULL;
 }
 
 
-SCIARA::~SCIARA(void)
+SCIARAThickness::~SCIARAThickness(void)
 {
+	delete lattice;
 }
 
 
-map<void**, size_t>* SCIARA::getDynamicArrays() {
+map<void**, size_t>* SCIARAThickness::getDynamicArrays() {
 
 	map<void**, size_t>* newMap = new map<void**, size_t>();
 
@@ -24,17 +25,17 @@ map<void**, size_t>* SCIARA::getDynamicArrays() {
 	return newMap;
 }
 
-size_t SCIARA::getCellSize() {
+size_t SCIARAThickness::getCellSize() {
 	return sizeof(Cell);
 }
 
 
 //TODO move this to .cpp
-void SCIARA::setLattice(AbstractLattice* newLattice) {
+void SCIARAThickness::setLattice(AbstractLattice* newLattice) {
 
 	if(newLattice == lattice)
 		return;
-	
+
 	if(lattice != NULL) {
 		delete lattice;
 	}
