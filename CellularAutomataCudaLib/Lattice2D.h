@@ -43,14 +43,14 @@ public:
 	static const int MOORE = 8;
 	static const int VON_NEUMANN = 4;
 
-	__device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, int xDIM, int yDIM) {
+	__device__ __host__ void getNeighbourhood(int* outNeighbourStates, int x, int y, int xDIM, int yDIM) {
 
 		switch(neighbourhoodType) {
 		case MOORE:
-			getMooresNeighbourhood(neighbourStates,x,y,xDIM,yDIM);
+			getMooresNeighbourhood(outNeighbourStates,x,y,xDIM,yDIM);
 			break;
 		case VON_NEUMANN:
-			getVonNeumannNeighbourhood(neighbourStates,x,y,xDIM,yDIM);
+			getVonNeumannNeighbourhood(outNeighbourStates,x,y,xDIM,yDIM);
 			break;
 		default:
 			break;
@@ -62,6 +62,7 @@ private:
 	//probably a much better way to figure out the moores neighbourhood, populates a max of 8 neighbours
 	__device__ __host__ void getMooresNeighbourhood(int* neighbours,int x, int y, int xDIM, int yDIM) {
 		
+		x = x * xDIM;
 
 		bool xBounds = (x / xDIM) < xDIM -1 ;
 
@@ -102,6 +103,8 @@ private:
 	//Populates a max of 4 neighbours
 	__device__ __host__ void getVonNeumannNeighbourhood(int* neighbours, int x, int y, int xDIM, int yDIM) {
 		
+		x = x * xDIM;
+
 		bool xBounds = (x / yDIM) < xDIM -1 ;
 
 		// [0,-1]

@@ -18,12 +18,21 @@
 #include "Totalistic.h"
 
 Totalistic::Totalistic(){
+	bornNo = NULL;
+	surviveNo = NULL;
 
+	bornSize = 0;
+	surviveSize = 0;
 }
 
 Totalistic::~Totalistic() { 
-	delete[] bornNo;
-	delete[] surviveNo;
+	if(bornNo != NULL) {
+		delete[] bornNo;
+	}
+	
+	if(surviveNo != NULL){
+		delete[] surviveNo;
+	}
 }
 
 void Totalistic::setStates(unsigned int states) {
@@ -31,6 +40,10 @@ void Totalistic::setStates(unsigned int states) {
 		AbstractLattice* lattice = getLattice();
 		noStates = states;
 
+		if(states == 1) {
+			//This shouldn't happen,
+			return;
+		}
 		//calculate how many bits are needed to hold a states
 		//we need to minus one to properly reflect the fact that 1 bit can hold 2 states
 		// 3 bits can hold 8 states etc.

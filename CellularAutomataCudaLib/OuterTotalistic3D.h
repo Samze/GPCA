@@ -49,7 +49,7 @@ public:
 		return lattice;
 	}
 
-	__device__  int applyFunction(void* g_data, int x, int y, int z, int xDIM) { 
+	__host__ __device__ int applyFunction(void* g_data, int x, int y, int z, int xDIM) { 
 
 		int xAltered = x * xDIM;
 		int zAltered = z * xDIM * xDIM;
@@ -72,7 +72,7 @@ public:
 
 
 	//	//Populate neighbours states.
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,zAltered,xDIM);
+		lattice->getNeighbourhood(neighbourhoodStates,x,y,z,xDIM);
 
 
 		//populate our neighbours with their cell state values 
@@ -104,6 +104,7 @@ public:
 		
 		//Potential bug here, could writing corrupt our data ??
 		cellData[gridLoc] = newState;
+		return 0;
 	}
 };
 

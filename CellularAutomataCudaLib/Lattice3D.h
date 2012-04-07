@@ -58,6 +58,9 @@ __device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, in
 	//probably a much better way to figure out the moores neighbourhood
 	__device__ __host__ void get3dMooresNeighbourhood(int* neighbourStates, int x, int y, int z, int DIM) {
 		
+		x = x * xDIM;
+		z = z * xDIM * xDIM;
+
 		int zDIM = DIM * DIM;
 		
 		bool xBounds = (x / DIM) < DIM -1;
@@ -180,6 +183,10 @@ __device__ __host__ void getNeighbourhood(int* neighbourStates, int x, int y, in
 		//probably a much better way to figure out the moores neighbourhood
 	__device__ __host__ void get3dVonNeumannNeighbourhood(int* neighbourStates,int x, int y, int z, int DIM) {
 		
+		x = x * xDIM;
+		z = z * xDIM * xDIM;
+
+
 		int zDIM = DIM * DIM;
 
 		bool xBounds = (x / DIM) < DIM -1;

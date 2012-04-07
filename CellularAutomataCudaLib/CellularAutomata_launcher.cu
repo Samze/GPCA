@@ -308,7 +308,6 @@ extern float CUDATimeStep3D(CAFunction *func) {
 
 	unsigned int* tempNeigh;
 	Lattice3D *tempLattice;
-	void* tempGrid;
 
 	cudaEvent_t start,stop; //Events for timings
 

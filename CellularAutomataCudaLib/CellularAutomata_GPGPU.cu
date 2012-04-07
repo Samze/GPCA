@@ -19,7 +19,6 @@
 
 CellularAutomata_GPGPU::CellularAutomata_GPGPU(){ 
 
-	stepNumber = 0;
 }
 
 
@@ -39,7 +38,7 @@ float CellularAutomata_GPGPU::nextTimeStep() {
 	
 	stepNumber++;
 
-	//No support for Runtime polymorphism inside the kernel.
+	//No support for Runtime polymorphism and templating. Templating required for kernel generation.
 	if(v != 0) {
 		return CUDATimeStep(v);
 	}

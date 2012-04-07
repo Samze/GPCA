@@ -17,6 +17,5 @@ public:
 	//The CA rule needs to indicate the exact size in bytes a Cell structure is.
 	__host__ virtual size_t getCellSize() = 0;
 
-
 };
 

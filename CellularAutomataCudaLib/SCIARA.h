@@ -38,7 +38,6 @@ public:
 	Lattice2D *lattice;
 
 public:
-	//For now this must be signed to cope with -1 (no neighbour values)
 	__host__ __device__ struct Cell {
 	  float altitude;
 	  float thickness;
@@ -57,9 +56,8 @@ public:
 
 	__host__ map<void**, size_t>* getDynamicArrays();
 
-	__device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
+	__host__ __device__ int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
 
-		int xAltered = x * yDIM;
 		int gridLoc = x * yDIM + y;
 
 		Cell* cellGrid = (Cell*)g_data;
@@ -75,7 +73,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
+		lattice->getNeighbourhood(neighbourhoodStates,x,y,xDIM,yDIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
@@ -153,6 +151,7 @@ public:
 			cellGrid[gridLoc].outflow[2] = centerCell.outflow[2];
 			cellGrid[gridLoc].outflow[3] = centerCell.outflow[3];
 		}
+		return 0;
 	}
 };
 

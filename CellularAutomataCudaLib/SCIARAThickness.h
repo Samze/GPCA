@@ -53,9 +53,8 @@ public:
 		return lattice;
 	}
 
-	__device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
+	__host__ __device__ int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
 		
-		int xAltered = x * yDIM;
 		int gridLoc = x * yDIM + y;
 
 		Cell* cellGrid = (Cell*)g_data;
@@ -72,7 +71,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
+		lattice->getNeighbourhood(neighbourhoodStates,x,y,xDIM,yDIM);
 
 		//Populate neighbours
 		for(int i = 0; i < 4; i++) {
@@ -108,6 +107,8 @@ public:
 
 		//updateCell
 		cellGrid[gridLoc].thickness = new_thickness;
+
+		return 0;
 	}
 };
 

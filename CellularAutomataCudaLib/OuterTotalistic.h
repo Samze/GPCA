@@ -55,7 +55,6 @@ public:
 
 	__device__ __host__ int applyFunction(void* g_data, int x, int y, int xDIM,int yDIM) { 
 		
-		int xAltered = x * yDIM;
 		int gridLoc = x * yDIM + y;
 
 		unsigned int* cellData = (unsigned int*)g_data;
@@ -71,7 +70,7 @@ public:
 			neighbourhoodStates[i] = -1; 
 		}
 
-		lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
+		lattice->getNeighbourhood(neighbourhoodStates,x,y,xDIM,yDIM);
 
 		//Should probably move this code to TOTALISTIC CLASS, but it might slow it down..
 		int liveCells = 0;//getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
@@ -92,6 +91,8 @@ public:
 		}
 
 		cellData[gridLoc] = newState;
+		
+		return 0;
 	}
 };
 

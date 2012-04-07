@@ -55,9 +55,8 @@ public:
 
 	__host__ virtual size_t getCellSize();
 
-	__device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
+	__host__ __device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
 		
-		int xAltered = x * yDIM;
 		int gridLoc = x * yDIM + y;
 
 		unsigned int* cellData = (unsigned int*)g_data;
@@ -85,7 +84,7 @@ public:
 			}
 
 			//Populate neighbours states.
-			lattice->getNeighbourhood(neighbourhoodStates,xAltered,y,xDIM,yDIM);
+			lattice->getNeighbourhood(neighbourhoodStates,x,y,xDIM,yDIM);
 
 
 
@@ -137,6 +136,7 @@ public:
 		//Potential bug here, could writing corrupt our data ??
 		cellData[gridLoc] = newState;
 
+		return 0;
 	}
 };
 

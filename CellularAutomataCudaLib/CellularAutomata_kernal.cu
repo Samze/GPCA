@@ -147,8 +147,6 @@ __global__ void kernal3DTest(CAFunction* func) {
 
 	int blockSlice = blockIdx.x / gridDim.y;
 	
-	__shared__ unsigned int shar_data[512];
-
 	int x = threadIdx.x + (blockIdx.x - (blockSlice * gridDim.y))  * blockDim.x;
 	int y = threadIdx.y + blockIdx.y * blockDim.y; 
 	int z = threadIdx.z + blockSlice * blockDim.x;

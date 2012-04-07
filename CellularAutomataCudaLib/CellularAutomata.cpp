@@ -19,6 +19,7 @@
 
 
 CellularAutomata::CellularAutomata() {
+	stepNumber = 0;
 }
 
 
