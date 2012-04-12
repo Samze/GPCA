@@ -31,7 +31,15 @@ CellularAutomata::~CellularAutomata() {
 }
 
 
-DLLExport void CellularAutomata::setCARule(AbstractCellularAutomata* ca) {
+int CellularAutomata::getStepNumber() {
+	return stepNumber;
+}
+
+void CellularAutomata::setStepNumber(int num) {
+	stepNumber = num;
+}
+
+void CellularAutomata::setCARule(AbstractCellularAutomata* ca) {
 	caRule = ca;
 
 	Generations* v = dynamic_cast<Generations*>(caRule);

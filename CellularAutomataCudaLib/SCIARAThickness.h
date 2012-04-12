@@ -45,7 +45,6 @@ public:
 	  float thickness;
 	  float outflow[4];
 	};
-	__host__ virtual size_t getCellSize();
 	__host__ virtual void setLattice(AbstractLattice* newLattice);
 	__host__ map<void**, size_t>* getDynamicArrays();
 

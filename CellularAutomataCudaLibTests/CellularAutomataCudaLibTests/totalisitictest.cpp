@@ -2,7 +2,6 @@
 #include "Lattice2D.h"
 
 void TotalisiticTest::setStates(){
-
 	Generations* genTest = new Generations();
 	Lattice2D* newlattice = new Lattice2D(10,10,1);
 
@@ -15,7 +14,6 @@ void TotalisiticTest::setStates(){
 	QCOMPARE(genTest->getNoStates(),stateSize);
 	QCOMPARE(lattice->getNoBits(),1);
 	QCOMPARE((int)lattice->getMaxBits(),1);
-
 
 	stateSize = 4;
 	genTest->setStates(stateSize);
@@ -31,5 +29,4 @@ void TotalisiticTest::setStates(){
 	QCOMPARE(genTest->getNoStates(),stateSize);
 	QCOMPARE(lattice->getNoBits(),7);
 	QCOMPARE((int)lattice->getMaxBits(),127);
-
 }

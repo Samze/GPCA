@@ -26,10 +26,6 @@ map<void**, size_t>* OuterTotalistic::getDynamicArrays() {
 		return newMap;
 }
 
-size_t OuterTotalistic::getCellSize() {
-	return sizeof(unsigned int);
-}
-
 void OuterTotalistic::setLattice(AbstractLattice* newLattice) {
 
 	if(newLattice == lattice)

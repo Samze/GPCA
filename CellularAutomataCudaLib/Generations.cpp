@@ -26,10 +26,6 @@ map<void**, size_t>* Generations::getDynamicArrays() {
 		return newMap;
 }
 
-size_t Generations::getCellSize() {
-	return sizeof(unsigned int);
-}
-
 void Generations::setLattice(AbstractLattice* newLattice) {
 
 	if(newLattice == lattice)

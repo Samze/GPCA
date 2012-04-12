@@ -28,6 +28,14 @@
 
 using namespace std;
 
+/**
+* The "Outer Totalisitc" game rules combine two facets. Firstly it is a totalistic game, in that it sums up the values 
+* of neighbours around it to determine it's next state. Secondly it is Outer Totalistic, so a cell also takes into account
+* it's own state as well as that of it's neighbours. 
+*
+* The famous game of life is an example of a Outer totalisitic CA.
+* This implementation is 2 dimensional.
+*/
 class OuterTotalistic : public Totalistic {
 
 public :
@@ -36,23 +44,44 @@ public :
 
 
 	//This is only public for access by Kernel...
-	Lattice2D *lattice;
+	Lattice2D *lattice; /**< The 2D lattice used by the Rule. This is only public for access by Kernel. Host could should use the getter/setter provided */
 
 public:
-	__host__ __device__ struct Cell {
-	  unsigned int state;
-	};
 
-	
-	//These return a list of dynamic pointers to be put onto the GPU.
+	/**
+	* Return a list of dynamic pointers to be put onto the GPU.
+	* This is used to dynamically allocate data on the GPU. This will be used for lattice information. But also
+	* Used for survial/born state data.
+	*@return A map containing the address of the pointer that holds the data, along with it's size. 
+	*/
 	__host__ map<void**, size_t>* getDynamicArrays();
-	__host__ virtual size_t getCellSize();
+
+	/**
+	* Sets this Rules lattice.
+	*@param newLattice The new Lattice to set
+	*/
 	__host__ virtual void setLattice(AbstractLattice* newLattice);
 	
+	/**
+	* Gets the currently set latice.
+	* Note : this method is defined inline due to being accessed by the GPU.
+	*@return The current lattice
+	*/
 	__host__ __device__ Lattice2D* getLattice() { 
 		return lattice;
 	}
 
+	/**
+	* This is the transition function for a single cell. The pointers are passed here instead of being assumed as
+	* they can contained shared data pointers instead of global pointers. This is a special type of GPGPU memory that
+	* has significant performance benefits.
+	* Note : this method is defined inline due to being accessed by the GPU.
+	* @param g_data A pointer which contains a flat array of lattice state data.
+	* @param x The x co-ordinate of the cell to apply the function to
+	* @param y The y co-ordinate of the cell to apply the function to
+	* @param xDIM The total x size
+	* @param yDIM The total y size
+	*/
 	__device__ __host__ int applyFunction(void* g_data, int x, int y, int xDIM,int yDIM) { 
 		
 		int gridLoc = x * yDIM + y;

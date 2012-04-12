@@ -25,10 +25,6 @@ map<void**, size_t>* SCIARAThickness::getDynamicArrays() {
 	return newMap;
 }
 
-size_t SCIARAThickness::getCellSize() {
-	return sizeof(Cell);
-}
-
 
 //TODO move this to .cpp
 void SCIARAThickness::setLattice(AbstractLattice* newLattice) {

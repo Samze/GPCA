@@ -10,7 +10,15 @@
 
 using namespace std;
 
+/**
+* Utility class that provides the ability to dynimcally allocate memory and copy data to the GPU. This function is used internally
+* and should not be used by any clients.
+*/
 vector<void*>* setupDynamicArrays(const map<void**, size_t> &myMap);
+
+/**
+* Provides error checking on any potential GPU issues.
+*/
 const char* errorCheck();
 
 #endif

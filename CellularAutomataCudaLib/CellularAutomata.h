@@ -33,30 +33,67 @@
 
 #define DLLExport __declspec(dllexport)
 
+/**
+* Abstract class for launching a Cellular Automata. This class is the container and launcher for a CA. It contains the rule and it's subclasses
+* provide ways of running the nextTimeStep function.
+*
+*/
 class CellularAutomata
 {
 
 public:
 
+	/**
+	* Default constructor.
+	*/
 	DLLExport CellularAutomata();
+	
+	/**
+	* Virtual destructor. This class is meant to be subclassed.
+	*/
 	DLLExport virtual ~CellularAutomata();
 	
+	/**
+	* This applies the set rule to the lattice value for one time step. This can be seen as CA = func(CA,t+1). This is the method used to 
+	* activate the running of a CA.
+	*/
 	DLLExport virtual float nextTimeStep() = 0;
-	
-//	DLLExport unsigned int* getGrid() { return pFlatGrid;};
 
+	/**
+	* Gets the currently assigned CA rule.
+	*@return Returns the currently set CA rule.
+	*/
 	DLLExport AbstractCellularAutomata* getCARule() { return caRule; };
+	
+	/**
+	* Sets the currently assigned CA rule.
+	*@param ca The new CA rule to be assigned.
+	*/
 	DLLExport void setCARule(AbstractCellularAutomata* ca);
-	DLLExport void generate3DGrid(int,int);
 
+	/**
+	* Provides utilities to know which CA rule is currently bound.
+	*@return The Cellular automata rule name.
+	*/
 	DLLExport std::string getRuleName(){return ruleName;}
 
-	int stepNumber;
+	/**
+	* Gets the number of times the function has been applied to the lattice. The value of T.
+	*@return The number of iterations run thus far.
+	*/
+	DLLExport int getStepNumber();
+
+	/**
+	* Sets the number of times the function has been applied to the lattice. The value of T. This can be used if a new (previous)
+	* lattice has been applied.
+	*@param num The number of iterations run thus far.
+	*/
+	DLLExport void setStepNumber(int num);
 
 protected :
-	//unsigned int *pFlatGrid;
-	AbstractCellularAutomata* caRule;
-	std::string ruleName; //Meta data about what class we're launching
+	AbstractCellularAutomata* caRule;  /**< The CA defined.*/
+	std::string ruleName; /**< Meta data about what class we're launching, this should probably be encapsulated in the AbstractCA class.*/
+	int stepNumber;  /**< The value of t. The number of steps that have been run. */
 };
 
 #endif // CELLULARAUTOMATA_DLL_H

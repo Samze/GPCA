@@ -14,6 +14,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+/**
+*TestAroo.
+*
+*/
 template <typename CAFunction>
 __global__ void kernal(CAFunction* func) {
 	
@@ -52,7 +57,7 @@ __global__ void kernalSharedMem(CAFunction* func) {
 	//22 needs to mirror how many threads launched in the kernal...can't use blockDim.x/y.
 	__shared__ unsigned int shar_data[22 * 22];
 
-	unsigned int* grid = (unsigned int*)func->lattice->getGrid();
+	unsigned int* grid = (unsigned int*)func->lattice->pFlatGrid;
 	
 	//2 because of the padding!
 	int xOrigin = (x - 1) - (blockIdx.x * 2);

@@ -61,10 +61,10 @@ DLLExport Lattice2D::Lattice2D(int xDIM, int newYDIM, int range): AbstractLattic
 		}
 	}
 }
-
-DLLExport Lattice2D::Lattice2D(void* pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
-
-}
+//
+//DLLExport Lattice2D::Lattice2D(void* pFlatGrid, int dimension) : AbstractLattice(dimension,pFlatGrid)  {
+//
+//}
 
 
 Lattice2D::~Lattice2D(void)

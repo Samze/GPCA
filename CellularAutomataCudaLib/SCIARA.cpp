@@ -24,11 +24,6 @@ map<void**, size_t>* SCIARA::getDynamicArrays() {
 	return newMap;
 }
 
-size_t SCIARA::getCellSize() {
-	return sizeof(Cell);
-}
-
-
 //TODO move this to .cpp
 void SCIARA::setLattice(AbstractLattice* newLattice) {
 

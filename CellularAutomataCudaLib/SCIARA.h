@@ -45,9 +45,6 @@ public:
 	};
 	
 	//Cell* newGrid;
-	
-	__host__ virtual size_t getCellSize();
-
 	__host__ virtual void setLattice(AbstractLattice* newLattice);
 
 	__host__ __device__ Lattice2D* getLattice() { 

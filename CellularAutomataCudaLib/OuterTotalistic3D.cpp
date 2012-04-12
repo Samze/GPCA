@@ -26,9 +26,6 @@ map<void**, size_t>* OuterTotalistic3D::getDynamicArrays() {
 	return newMap;
 }
 
-size_t OuterTotalistic3D::getCellSize() {
-	return sizeof(unsigned int);
-}
 
 void OuterTotalistic3D::setLattice(AbstractLattice* newLattice) {
 

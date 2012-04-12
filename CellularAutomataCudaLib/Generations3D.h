@@ -29,6 +29,14 @@
 
 using namespace std;
 
+/**
+* The "Generations" game rules are very close to those from Life, with one addition: the cells' history.
+* Cells that would simply die in "Life" are only getting older in "Generations". They cannot give birth to new cells, 
+* but they occupy the space of the lattice, thus changing the rules radically.
+*
+* The generations game is a totalistic game, in that it sums up the values of neighbours around it to determine it's next state.
+* This implementation is 3 dimensional.
+*/
 class Generations3D : public Totalistic {
 
 public :
@@ -36,16 +44,42 @@ public :
 	DLLExport __device__ __host__ ~Generations3D();
 
 
-	//This is only public for access by Kernel...
-	Lattice3D *lattice;
+	Lattice3D *lattice; /**< The 3D lattice used by the Rule. This is only public for access by Kernel. Host could should use the getter/setter provided */
 
 public:
-	__host__ virtual size_t getCellSize();
+
+	/**
+	* Return a list of dynamic pointers to be put onto the GPU.
+	* This is used to dynamically allocate data on the GPU. This will be used for lattice information. But also
+	* Used for survial/born state data.
+	*@return A map containing the address of the pointer that holds the data, along with it's size. 
+	*/
 	__host__ map<void**, size_t>* Generations3D::getDynamicArrays();
+	
+	/**
+	* Sets this Rules lattice.
+	*@param newLattice The new Lattice to set
+	*/
 	__host__ virtual void setLattice(AbstractLattice* newLattice);
 	
+	/**
+	* Gets the currently set latice.
+	* Note : this method is defined inline due to being accessed by the GPU.
+	*@return The current lattice
+	*/
 	__host__ __device__ Lattice3D* getLattice() { return lattice;}
 
+	/**
+	* This is the transition function for a single cell. The pointers are passed here instead of being assumed as
+	* they can contained shared data pointers instead of global pointers. This is a special type of GPGPU memory that
+	* has significant performance benefits.
+	* Note : this method is defined inline due to being accessed by the GPU.
+	* @param g_data A pointer which contains a flat array of lattice state data.
+	* @param x The x co-ordinate of the cell to apply the function to.
+	* @param y The y co-ordinate of the cell to apply the function to.
+	* @param z The z co-ordinate of the cell to apply the function to.
+	* @param xDIM The dimension size. 3D CA only support N*N*N at this stage.
+	*/
 	__host__ __device__  int applyFunction(void* g_data, int x, int y, int z, int xDIM) { 
 
 		int xAltered = x * xDIM;

@@ -17,6 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "AbstractLattice.h"
 
+AbstractLattice::AbstractLattice(){
+
+}
 
 AbstractLattice::AbstractLattice(unsigned int xDIM) : xDIM(xDIM) {
 

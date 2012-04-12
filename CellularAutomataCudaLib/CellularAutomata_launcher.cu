@@ -48,13 +48,11 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 	int xDIM = func->getLattice()->getXSize();
 	int yDIM = func->getLattice()->yDIM;
 
-	size_t noCells = xDIM * yDIM * func->getCellSize();
-
 	//Might need to flatten the 2d array ormaybe try "int2" type
 
 	//TODO fix this name
 	size_t size = sizeof(CAFunction);
-	size_t sizeLattice = sizeof(Lattice2D);//func->lattice2->size();
+	size_t sizeLattice = func->lattice->size();
 	//Allocate suitable size memory on device
 	map<void**, size_t>* hostDynamicMap = func->getDynamicArrays();
 	map<void**, size_t>::const_iterator iter;
@@ -188,7 +186,7 @@ extern float CUDATimeStep(CAFunction *func) {
 
 	//TODO fix this name
 	size_t size = sizeof(CAFunction);
-	size_t sizeLattice = sizeof(Lattice2D);
+	size_t sizeLattice = func->lattice->size();
 
 	//Allocate suitable size memory on device
 	map<void**, size_t>* hostDynamicMap = func->getDynamicArrays();
@@ -210,9 +208,14 @@ extern float CUDATimeStep(CAFunction *func) {
 
 	//Make our 2D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread.6
-	//TODO why 1 here?
 	dim3 threads(22,22); //They are +2 for shared memory padding!
 	dim3 blocks (xDIM/20 + 1,yDIM/20 + 1);
+
+	//dim3 threads(20,20); //They are +2 for shared memory padding!
+	//dim3 blocks (xDIM/20,yDIM/20);
+
+	//dim3 threads(16,16);
+	//dim3 blocks (xDIM/threads.x + 1,(yDIM/threads.y + 1));
 
 	//We want to temporarily hold our pointers so we can reassign them after the object copy...
 	int count = 0;
@@ -344,7 +347,7 @@ extern float CUDATimeStep3D(CAFunction *func) {
 
 	//TODO Add this 
 	//size_t sizeLattice = func->lattice->size();
-	size_t sizeLattice = sizeof(Lattice3D);
+	size_t sizeLattice = func->lattice->size();
 
 
 	//Allocate suitable size memory on device

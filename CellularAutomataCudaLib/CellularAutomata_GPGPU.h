@@ -26,16 +26,30 @@
 #define DLLExport __declspec(dllexport)
 
 //forward declaration.
-extern "C" __global__ void kernalBufferObjectTest(GLfloat* pos,unsigned int w,unsigned int h);
-//template<typename CAFunction> extern float CUDATimeStep(unsigned int* pFlatGrid, int DIM, CAFunction *func);
-//template<typename CAFunction> extern float CUDATimeStep3D(unsigned int* pFlatGrid, int DIM, CAFunction *func);
+//extern "C" __global__ void kernalBufferObjectTest(GLfloat* pos,unsigned int w,unsigned int h);
 
+/**
+* Represents a GPU implemented of running a new Cellular Automata. This will use a parallel implementation applying the transition function
+* toall cells in a simulatanious manner.
+* @see CellularAutomata_GPGPU
+*/
 class CellularAutomata_GPGPU : public CellularAutomata
 {
 public:
+	/**
+	* Default constructor.
+	*/
 	DLLExport CellularAutomata_GPGPU();
+
+	/**
+	* Destructor.
+	*/
 	DLLExport ~CellularAutomata_GPGPU();
 	
+	/**
+	* GPU version of the timestep.
+	* @returns The time taken by the GPU to process the transition function to all cells in the lattice.
+	*/ 
 	float nextTimeStep();
 };
 #endif
