@@ -107,9 +107,9 @@ private:
 	//Populates a max of 8 neighbours
 	__device__ __host__ void getMooresNeighbourhood(int* neighbours,int x, int y, int xDIM, int yDIM) {
 		
-		x = x * xDIM;
-
-		bool xBounds = (x / xDIM) < xDIM -1 ;
+		x = x * yDIM;
+		
+		bool xBounds = (x / yDIM) < xDIM -1 ;
 
 		// [-1,-1]
 		if (x != 0 && y != 0)
@@ -148,7 +148,7 @@ private:
 	//Populates a max of 4 neighbours
 	__device__ __host__ void getVonNeumannNeighbourhood(int* neighbours, int x, int y, int xDIM, int yDIM) {
 		
-		x = x * xDIM;
+		x = x * yDIM;
 
 		bool xBounds = (x / yDIM) < xDIM -1 ;
 
