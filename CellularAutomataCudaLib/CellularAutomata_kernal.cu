@@ -36,7 +36,7 @@ __global__ void kernal(CAFunction* func) {
 	if( !(x > xDIM) &&  !(y > yDIM)) {//Guard against launching too many threads
 			
 		func->applyFunction(grid,x,y,xDIM,yDIM);
-		//grid[x * DIM + y] = result;
+		
 	}
 }
 

@@ -57,7 +57,7 @@ public:
 		return lattice;
 	}
 
-	
+
 	/**
 	* Return a list of dynamic pointers to be put onto the GPU.
 	* This is used to dynamically allocate data on the GPU. This will be used for lattice information. But also
@@ -84,7 +84,7 @@ public:
 	* @param yDIM The total y size
 	*/
 	__host__ __device__  int applyFunction(void* g_data, int x, int y, int xDIM, int yDIM) { 
-		
+
 		int gridLoc = x * yDIM + y;
 
 		unsigned int* cellData = (unsigned int*)g_data;
@@ -105,7 +105,7 @@ public:
 			//This is signed so we can default to -1, this shows NO neighbour, a result of 0 means a neighbour who's state is zero
 			//This may cause complications as states are stored in unsigned ints...
 			int neighbourhoodStates[8];
-	
+
 			//set as -1 by default.
 			for(int i = 0; i < 8; i++) {
 				neighbourhoodStates[i] = -1; 
@@ -138,22 +138,22 @@ public:
 
 			//we only care about neighbours when we know we're in a ready state
 			//int liveCells = Totalistic::getLiveCellCount(neighbourhoodStates,lattice->maxBits,lattice->neighbourhoodType);
-	
+
 			if(state == 1) {
-				
+
 				for (int i = 0; i < surviveSize; i++) {
 					if (liveCells == surviveNo[i]) newState = setNewState(lattice,1,state);
 				}
 
 			}
 			else if(state == 0) {
-				
+
 				for (int i = 0; i < bornSize; ++i) {		
 					if (liveCells == bornNo[i]) newState = setNewState(lattice,1,state);
 				}
-			
+
 			}
-			
+
 			if (state == 1 && newState == state) {
 				if (state < noStates - 1) { //This guards against 2 state generations
 					newState = setNewState(lattice,2,state);

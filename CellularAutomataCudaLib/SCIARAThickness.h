@@ -81,11 +81,11 @@ public:
 			}
 			else {
 				neighs[i].altitude = 10000; //set to max height
-				neighs[i].thickness = 0;
-				neighs[i].outflow[0] = 0;
-				neighs[i].outflow[1] = 0;
-				neighs[i].outflow[2] = 0;
-				neighs[i].outflow[3] = 0;
+				neighs[i].thickness = 0.0;
+				neighs[i].outflow[0] = 0.0;
+				neighs[i].outflow[1] = 0.0;
+				neighs[i].outflow[2] = 0.0;
+				neighs[i].outflow[3] = 0.0;
 			}
 		}
 
@@ -93,13 +93,11 @@ public:
 		int i;
 
 		//Used for debugging
-		float outflows = 0;
 
 		float new_thickness = centerCell.thickness;
 
 		for(i=0; i < 4; i++) {
 			new_thickness = new_thickness - centerCell.outflow[i] + neighs[i].outflow[3-i];
-			outflows += centerCell.outflow[i];
 		}
 
 		//centerCell.thickness = new_thickness;

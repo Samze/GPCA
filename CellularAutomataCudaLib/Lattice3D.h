@@ -109,8 +109,8 @@ private:
 	//probably a much better way to figure out the moores neighbourhood
 	__device__ __host__ void get3dMooresNeighbourhood(int* neighbourStates, int x, int y, int z, int DIM) {
 
-		x = x * xDIM;
-		z = z * xDIM * xDIM;
+		x = x * DIM;
+		z = z * DIM * DIM;
 
 		int zDIM = DIM * DIM;
 

@@ -38,11 +38,12 @@ public:
 	Lattice2D *lattice;
 
 public:
-	__host__ __device__ struct Cell {
+	// __align__ (16) 
+	__host__ __device__ struct Cell{
 	  float altitude;
 	  float thickness;
 	  float outflow[4];
-	};
+	} ;
 	
 	//Cell* newGrid;
 	__host__ virtual void setLattice(AbstractLattice* newLattice);
@@ -57,9 +58,18 @@ public:
 
 		int gridLoc = x * yDIM + y;
 
-		Cell* cellGrid = (Cell*)g_data;
 
+		Cell* cellGrid = (Cell*)g_data;
+		
 		Cell centerCell = cellGrid[gridLoc]; 
+
+		
+		for(int i = 0; i < 4; i++) {
+			if(centerCell.outflow[i] > 0.0) {
+				centerCell.outflow[i] = centerCell.outflow[i];
+			}
+		}
+
 
 		Cell neighs[4];
 
@@ -81,11 +91,11 @@ public:
 			}
 			else {
 				neighs[i].altitude = 10000; //set to max height
-				neighs[i].thickness = 0;
-				neighs[i].outflow[0] = 0;
-				neighs[i].outflow[1] = 0;
-				neighs[i].outflow[2] = 0;
-				neighs[i].outflow[3] = 0;
+				neighs[i].thickness = 0.0;
+				neighs[i].outflow[0] = 0.0;
+				neighs[i].outflow[1] = 0.0;
+				neighs[i].outflow[2] = 0.0;
+				neighs[i].outflow[3] = 0.0;
 			}
 		}
 
@@ -98,7 +108,10 @@ public:
 
 		float Z[5];
 
-		float average;
+
+		//This needs to be a double for rounding to be correct,
+		//CUDA 1.2 does not support doubles so this is converted to a float.
+		double average;
 
 		int k,i;
 		bool again;
@@ -141,13 +154,20 @@ public:
 			else {
 				centerCell.outflow[i-1] = 0;
 			}
+		}
+
+		
+		for(int i = 0; i < 4; i++) {
+			if(centerCell.outflow[i] > 0.0) {
+				centerCell.outflow[i] = centerCell.outflow[i];
+			}
+		}
 
 			//updateCell
 			cellGrid[gridLoc].outflow[0] = centerCell.outflow[0];
 			cellGrid[gridLoc].outflow[1] = centerCell.outflow[1];
 			cellGrid[gridLoc].outflow[2] = centerCell.outflow[2];
 			cellGrid[gridLoc].outflow[3] = centerCell.outflow[3];
-		}
 		return 0;
 	}
 };

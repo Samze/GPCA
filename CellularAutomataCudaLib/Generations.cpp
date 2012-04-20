@@ -40,4 +40,3 @@ void Generations::setLattice(AbstractLattice* newLattice) {
 
 	lattice = new2DLattice;
 } 
-

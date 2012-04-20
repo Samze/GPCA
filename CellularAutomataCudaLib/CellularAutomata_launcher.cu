@@ -211,11 +211,9 @@ extern float CUDATimeStep(CAFunction *func) {
 	dim3 threads(22,22); //They are +2 for shared memory padding!
 	dim3 blocks (xDIM/20 + 1,yDIM/20 + 1);
 
-	//dim3 threads(20,20); //They are +2 for shared memory padding!
-	//dim3 blocks (xDIM/20,yDIM/20);
 
 	//dim3 threads(16,16);
-	//dim3 blocks (xDIM/threads.x + 1,(yDIM/threads.y + 1));
+	//dim3 blocks ((xDIM/threads.x) + 1,(yDIM/threads.y) + 1);
 
 	//We want to temporarily hold our pointers so we can reassign them after the object copy...
 	int count = 0;
@@ -366,14 +364,14 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	//Make our 3D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread
 
-	//dim3 threads(8,8,8);
+	dim3 threads(8,8,8);
 	
-	//dim3 blocks((DIM/(threads.x)) * (DIM/(threads.z) ),DIM/(threads.y));
 	//dim3 blocks((xDIM/(threads.x - 2) + 1) * (zDIM/(threads.z- 2) + 1),yDIM/(threads.y - 2) + 1);
+	dim3 blocks((xDIM/(threads.x - 2) + 1) * (zDIM/(threads.z- 2)),yDIM/(threads.y - 2) + 1);
 
-	dim3 threads(16,16);
+	/*dim3 threads(16,16);
 	dim3 blocks (xDIM/threads.x + 1,(xDIM/threads.y + 1) * xDIM);
-
+*/
 	//copy our two dynamic arrays 
 	//cudaMemcpy(dev_born, func->bornNo, sizeof(int) * func->bornSize,
 	//	cudaMemcpyHostToDevice);
@@ -417,7 +415,7 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	cudaMemcpy(dev_func, func,size,
 		cudaMemcpyHostToDevice);
 
-	kernal3D<<<blocks,threads>>>(dev_func);
+	kernal3DTestShared<<<blocks,threads>>>(dev_func);
 
 
 	//Because of our func currently holding a device pointer, we need to use a
