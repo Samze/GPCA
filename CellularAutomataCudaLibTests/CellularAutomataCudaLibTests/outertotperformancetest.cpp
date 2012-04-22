@@ -42,6 +42,7 @@ void OuterTotPerformanceTest::testGens(Runtype type, Dimension d, int size){
 
 	Totalistic* gen;
 	int* bornNumOne = new int[1]; 
+	bornNumOne[0] = 0;
 
 	if(d == TWOD) {
 		gen = new OuterTotalistic();

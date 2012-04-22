@@ -20,17 +20,16 @@ vector<void*>* setupDynamicArrays(const map<void**, size_t> &myMap) {
 		//alloc memory
 		cudaMalloc((void**) &dev_pointer, size);
 	
-		errorCheck();
 
 		//copy data
 		cudaMemcpy(dev_pointer, host_pointer, size,
 			cudaMemcpyHostToDevice);
 		
-		errorCheck();
 
 		devPointers->push_back(dev_pointer);
 	}
-
+	
+		errorCheck();
 	return devPointers;
 }
 

@@ -106,7 +106,7 @@ extern float CUDATimeStepSCIARA(CAFunction *func) {
 	cudaMemcpy(dev_func, func,size,
 		cudaMemcpyHostToDevice);
 
-	SCIARAKernal<<<blocks,threads>>>(dev_func);
+	kernal<<<blocks,threads>>>(dev_func);
 
 	//Reassign our dynamic pointers
 	count = 0;
@@ -364,14 +364,13 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	//Make our 3D grid of blocks & threads (DIM/No of threads)
 	//One pixel is one thread
 
-	dim3 threads(8,8,8);
+	//dim3 threads(8,8,8);
 	
 	//dim3 blocks((xDIM/(threads.x - 2) + 1) * (zDIM/(threads.z- 2) + 1),yDIM/(threads.y - 2) + 1);
-	dim3 blocks((xDIM/(threads.x - 2) + 1) * (zDIM/(threads.z- 2)),yDIM/(threads.y - 2) + 1);
 
-	/*dim3 threads(16,16);
+	dim3 threads(16,16);
 	dim3 blocks (xDIM/threads.x + 1,(xDIM/threads.y + 1) * xDIM);
-*/
+
 	//copy our two dynamic arrays 
 	//cudaMemcpy(dev_born, func->bornNo, sizeof(int) * func->bornSize,
 	//	cudaMemcpyHostToDevice);
@@ -415,7 +414,7 @@ extern float CUDATimeStep3D(CAFunction *func) {
 	cudaMemcpy(dev_func, func,size,
 		cudaMemcpyHostToDevice);
 
-	kernal3DTestShared<<<blocks,threads>>>(dev_func);
+	kernal3D<<<blocks,threads>>>(dev_func);
 
 
 	//Because of our func currently holding a device pointer, we need to use a

@@ -91,6 +91,7 @@ public:
 
 		int state = cellData[gridLoc];
 
+		return 0;
 		int newState = state;
 
 		int temp = 0;
